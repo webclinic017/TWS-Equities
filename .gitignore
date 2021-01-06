@@ -3,7 +3,7 @@
 .idea/
 *.xml
 *.html
-data_files/historical_data/
+data_files/historical_data/20*
 logs/
 
 # Byte-compiled / optimized / DLL files

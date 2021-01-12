@@ -1,3 +1,4 @@
+alive-progress==1.6.1
 certifi==2020.12.5
 chardet==4.0.0
 ibapi @ file:///Users/mandeepsingh/dev/K2Q/tools/twsapi_macunix.976.01/IBJts/source/pythonclient/dist/ibapi-9.76.1-py3-none-any.whl

@@ -3,7 +3,8 @@
 .idea/
 *.xml
 *.html
-data_files/historical_data/20*
+data_files/historical_data/*
+!data_files/historical_data/*.py
 logs/
 
 # Byte-compiled / optimized / DLL files
@@ -22,7 +23,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-# lib/
+#lib/
 lib64/
 parts/
 sdist/

@@ -46,7 +46,7 @@ The project itself contains the **virtual environment(env_k2q)** needed to run t
    
 2. Activate the virtual environment:  
 ```
-    source env_k2q/bin/activate
+    source venv/bin/activate
 ```
 
 <font size="1">**NOTE:** "env_k2q/bin" contains multiple activation scripts, command given above works for Linux based system that use bash as their default shell. Use one according to your system envrionment.</font>  

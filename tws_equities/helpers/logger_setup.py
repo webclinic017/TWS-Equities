@@ -70,7 +70,7 @@ LOG_LOCATION = join(dirname(dirname(__file__)), 'logs')
 def get_log_file():
     """
         # TODO: to be added...
-        - generates a file based on execution time and return the path
+        - generates a file based on execution time and returns the path
     """
     date_format, time_format = '%Y-%m-%d', '%H_%M_%S'
     current_date_time = datetime.today()

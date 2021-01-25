@@ -1,23 +1,26 @@
 from alive_progress import alive_bar
-from glob import glob
-from os.path import isdir
-from os.path import join
-from os.path import sep
 import pandas as pd
 from sys import stdout
 
 from tws_equities.data_files import get_japan_indices
-from tws_equities.helpers import BAR_CONFIG as _BAR_CONFIG
 from tws_equities.helpers import read_json_file
 from tws_equities.helpers import save_data_as_json
 from tws_equities.helpers import make_dirs
 from tws_equities.helpers import delete_directory
+from tws_equities.helpers import get_files_by_type
 from tws_equities.helpers import read_csv
 from tws_equities.helpers import isfile
+from tws_equities.helpers import isdir
+from tws_equities.helpers import join
+from tws_equities.helpers import sep
+from tws_equities.helpers import glob
+
+from tws_equities.helpers import BAR_CONFIG as _BAR_CONFIG
 from tws_equities.helpers import HISTORICAL_DATA_STORAGE as _HISTORICAL_DATA_STORAGE
 
 
 # TODO: both dataframe generators could be refactored into a generic fucntion.
+# fixme: account for empty dataframes
 def generate_success_dataframe(target_directory):
     """
         Creates a pandas data fame from JSON files present at the given failure location.
@@ -28,31 +31,33 @@ def generate_success_dataframe(target_directory):
 
     def _get_ticker_id(file_name):
         return int(file_name.split(sep)[-1].split('.')[0])
+
     # create a place holder dataframe
     expected_columns = ['time_stamp', 'ecode', 'session', 'high', 'low', 'close',
                         'volume', 'average', 'count']
-    data = pd.DataFrame(columns=expected_columns)
 
     # create temporary directory to store smaller CSV files
     temp_directory = '.temp'
     make_dirs(temp_directory)
 
     # extract all json files from target directory
-    success_file_pattern = join(target_directory, '*.json')
-    success_files = glob(success_file_pattern)
-    total = len(success_files)
+    success_files = get_files_by_type(target_directory)
+    success_tickers = list(map(_get_ticker_id, success_files))
+    total = len(success_tickers)
+    data = pd.DataFrame(columns=expected_columns)
 
     if bool(total):
-        json_generator = (read_json_file(file) for file in success_files)
+        json_generator = map(read_json_file, success_files)
         counter = 0  # to count temp files
         with alive_bar(total=total, **_BAR_CONFIG) as bar:
             for i in range(total):
-                ticker_data = next(json_generator)
+                ticker = success_tickers[i]
+                ticker_data = next(json_generator)  # load data into a dictionary
                 bar_data, meta_data = ticker_data['bar_data'], ticker_data['meta_data']
                 temp_data = pd.DataFrame(bar_data)
-                temp_data['ecode'] = meta_data.get('ecode', _get_ticker_id(success_files[i]))
+                temp_data['ecode'] = ticker
                 data = data.append(temp_data)
-                _time_to_cache = (i+1 == total) or ((i > 0) and (i % 100 == 0))
+                _time_to_cache = ((i > 0) and (i % 100 == 0)) or (i+1 == total)
                 if _time_to_cache:
                     if data.shape[0] > 0:
                         temp_file = join(temp_directory, f'success_{counter}.csv')
@@ -63,10 +68,11 @@ def generate_success_dataframe(target_directory):
 
         # merge all CSV files into a single dataframe
         # delete all temp files
-        temp_files = glob(join(temp_directory, 'success_*.csv'))
-        data = pd.concat(map(read_csv, temp_files))
-        data.sort_values(by=['ecode', 'time_stamp'], inplace=True, ignore_index=True)
-        data = data[expected_columns]
+        temp_files = get_files_by_type(temp_directory, file_type='csv')
+        if bool(temp_files):
+            data = pd.concat(map(read_csv, temp_files))
+            data.sort_values(by=['ecode', 'time_stamp'], inplace=True, ignore_index=True)
+            data = data[expected_columns]
     delete_directory(temp_directory)
 
     return data
@@ -84,7 +90,7 @@ def generate_failure_dataframe(target_directory):
         return int(file_name.split(sep)[-1].split('.')[0])
 
     # create a place holder dataframe
-    expected_columns = ['ecode', 'status', 'code', 'message', 'attempts']
+    expected_columns = ['ecode', 'code', 'message']
     data = pd.DataFrame(columns=expected_columns)
 
     # create temporary directory to store smaller CSV files
@@ -102,12 +108,16 @@ def generate_failure_dataframe(target_directory):
         with alive_bar(total=total, **_BAR_CONFIG) as bar:
             for i in range(total):
                 ticker_data = next(json_generator)
-                meta_data = ticker_data['meta_data']
-                error_stack = meta_data['_error_stack']
-                temp_data = pd.DataFrame(error_stack)
-                status, attempts = meta_data['status'], meta_data['attempts']
-                temp_data['ecode'] = meta_data.get('ecode', _get_ticker_id(failure_files[i]))
-                temp_data['status'], temp_data['attempts'] = status, attempts
+                meta = ticker_data['meta_data']
+                error_stack = meta['_error_stack']
+                ecode = meta.get('ecode', _get_ticker_id(failure_files[i]))
+                temp_data = pd.DataFrame(error_stack, columns=expected_columns)
+                temp_data['ecode'] = ecode
+                # if error stack is empty, then create a dummy row
+                if temp_data.shape[0] == 0:  # fixme: find a way to control this in the TWS Client
+                    dummy_row = {'ecode': ecode, 'code': 'unknown', 'message': 'not available'}
+                    temp_data = temp_data.append(dummy_row, ignore_index=True)
+
                 data = data.append(temp_data)
                 _time_to_cache = (i+1 == total) or ((i > 0) and (i % 100 == 0))
                 if _time_to_cache:
@@ -120,7 +130,7 @@ def generate_failure_dataframe(target_directory):
 
         # merge all CSV files into a single dataframe
         # delete all temp files
-        temp_files = glob(join(temp_directory, 'failure_*.csv'))
+        temp_files = get_files_by_type(temp_directory, file_type='csv')
         data = pd.concat(map(read_csv, temp_files))
         data.sort_values(by=['ecode'], ignore_index=True, inplace=True)
         data = data[expected_columns]
@@ -129,7 +139,7 @@ def generate_failure_dataframe(target_directory):
     return data
 
 
-def create_csv_dump(target_date):
+def create_csv_dump(target_date, end_time='15:01:00'):
     """
         Creates a CSV file from JSON files for a given date.
         Raise an error if directory for the gven is not present.
@@ -137,15 +147,15 @@ def create_csv_dump(target_date):
             'success.csv' & 'failure.csv'
     """
     stdout.write(f'{"-"*40} Init Conversion {"-"*40}\n')
-    target_directory = join(_HISTORICAL_DATA_STORAGE, target_date)
+    target_directory = join(_HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
     if not isdir(target_directory):
         raise NotADirectoryError(f'Could not find a data storage directory for date: {target_date}')
     success_directory = join(target_directory, '.success')
     failure_directory = join(target_directory, '.failure')
 
     if isdir(success_directory):
-        success = generate_success_dataframe(success_directory)
         path = join(target_directory, 'success.csv')
+        success = generate_success_dataframe(success_directory)
         success.to_csv(path, index=False)
 
     if isdir(failure_directory):
@@ -167,31 +177,32 @@ def _get_ratio(input_items, output_items, decimal_palces=3):
 
 # noinspection PyUnusedLocal
 # TODO: refactor
-def generate_extraction_metrics(target_date):
+def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=None):
     """
         Generates metrics about success & failure tickers.
         Metrics are saved into a new file called 'metrics.csv'
         :param target_date: date for which metrics are needed
+        :param end_time: end time for metrics are to be generated
+        :param input_tickers: tickers for which metrics are to be generated
     """
     stdout.write('Generating final metrics, please wait...\n')
     expected_metrics = [
-                            'total_tickers', 'total_extracted', 'total_extraction_ratio',
-                            'extraction_successful', 'extraction_failure',
-                            'success_ratio', 'failure_ratio',
-                            'n_225_input_ratio', 'n_225_success_ratio', 'n_225_failure_ratio',
-                            'topix_input_ratio', 'topix_success_ratio', 'topix_failure_ratio',
-                            'jasdaq_20_input_ratio', 'jasdaq_20_success_ratio', 'jasdaq_20_failure_ratio',
-                            'missing_tickers_ratio', 'missing_tickers'
-                       ]
+        'total_tickers', 'total_extracted', 'total_extraction_ratio',
+        'extraction_successful', 'extraction_failure',
+        'success_ratio', 'failure_ratio',
+        'n_225_input_ratio', 'n_225_success_ratio', 'n_225_failure_ratio',
+        'topix_input_ratio', 'topix_success_ratio', 'topix_failure_ratio',
+        'jasdaq_20_input_ratio', 'jasdaq_20_success_ratio', 'jasdaq_20_failure_ratio',
+        'missing_tickers_ratio', 'missing_tickers'
+    ]
     metrics = dict(zip(expected_metrics, [0.0]*len(expected_metrics)))
-    target_directory = join(_HISTORICAL_DATA_STORAGE, target_date)
+    target_directory = join(_HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
     if not isdir(target_directory):
         raise NotADirectoryError(f'Data storage directory for {target_date} not found at'
                                  f'{_HISTORICAL_DATA_STORAGE}')
 
     success_file = join(target_directory, 'success.csv')
     failure_file = join(target_directory, 'failure.csv')
-    input_tickers_file = join(target_directory, 'input_tickers.json')
 
     if not isfile(success_file):
         raise FileNotFoundError(f'Can not find success file: {success_file}')
@@ -199,10 +210,12 @@ def generate_extraction_metrics(target_date):
     if not isfile(failure_file):
         raise FileNotFoundError(f'Can not find failure file: {failure_file}')
 
-    if not isfile(input_tickers_file):
-        raise FileNotFoundError(f'Can not find input tickers file: {input_tickers_file}')
+    if input_tickers is None:
+        input_tickers_file = join(target_directory, 'input_tickers.json')
+        if not isfile(input_tickers_file):
+            raise FileNotFoundError(f'Can not find input tickers file: {input_tickers_file}')
+        input_tickers = read_json_file(input_tickers_file)
 
-    input_tickers = read_json_file(input_tickers_file)
     japan_indices = get_japan_indices()
 
     _n_225_tickers = japan_indices[japan_indices.n_225.str.contains('T')].n_225.unique().tolist()
@@ -269,5 +282,5 @@ def generate_extraction_metrics(target_date):
 
 
 if __name__ == '__main__':
-    # create_csv_dump('20210120')
-    generate_extraction_metrics('20210120')
+    create_csv_dump('20210121')
+    # generate_extraction_metrics('20210120')

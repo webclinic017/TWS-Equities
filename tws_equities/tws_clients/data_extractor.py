@@ -20,7 +20,6 @@ import signal
 
 
 OS_IS_UNIX = os_name == 'posix'
-# PROJECT_DIRECTORY = dirname(dirname(__file__))
 _LOGGER = get_logger(__name__)
 flatten = chain.from_iterable
 

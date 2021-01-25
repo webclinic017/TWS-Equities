@@ -9,13 +9,26 @@ from os.path import isdir
 from os.path import join
 from os.path import isfile
 from os.path import sep
+from glob import glob
 from os import listdir
 from os import makedirs
 from os import remove
 from os import rmdir
 import pandas as pd
 from time import time
-# from sys import stdout
+from time import sleep
+from sys import stdout
+
+
+def write_to_console(message, pointer='=>', verbose=False, indent=0, end='\n'):
+    _supported_pointers = ['*', '-', '+', '=>', '->']
+    assert pointer in _supported_pointers, f'Invalid pointer, supported pointers: {_supported_pointers}'
+    assert isinstance(verbose, bool), f'Verbose must a boolean, received: {verbose}'
+    assert isinstance(indent, int) and indent >= 0, f'Indent value must be a whole number, received: {indent}'
+
+    if verbose:
+        stdout.write(f'{" " * (indent * 2)}{pointer} {message}{end}')
+        sleep(0.2 * (indent+1))
 
 
 def timer(function):
@@ -105,10 +118,12 @@ def create_batches(items, batch_size=15):
         Converts an interable into a list of smaller batches.
         :param items: iterable
         :param batch_size: size for each batch
+        :param verbose: set to True to display messages on console
         :return: list of bachtes
         # TODO: Turn it into a generator
     """
-    # stdout.write(f'=> Batch creation initiated...\n')
+    message = 'Generating batches...'
+
     type_of_items = type(items)
     if type_of_items not in [list, set, tuple]:
         raise TypeError(f'Items must be an iterable, received: {type_of_items}')
@@ -121,9 +136,7 @@ def create_batches(items, batch_size=15):
         batches.append(items[start:end])
         start = end
         end += batch_size
-    # stdout.write(f'\t-> Total Items: {total}\n')
-    # stdout.write(f'\t-> Total Batches: {len(batches)}\n')
-    # stdout.write(f'\t-> Batch Size: {batch_size}\n')
+
     return batches
 
 
@@ -168,9 +181,16 @@ def _validate_target_file(file_path, expected_file_type='csv'):
         raise FileNotFoundError(f'File: {file_path} does not exist.')
 
 
-def read_csv(file_path):
+def read_csv(file_path, target_columns=None):
     _validate_target_file(file_path, expected_file_type='csv')
-    return pd.read_csv(file_path)
+    return pd.read_csv(file_path, usecols=target_columns)
+
+
+def get_files_by_type(target_directory, file_type='json'):
+    return glob(join(target_directory, f'*.{file_type}'))
+
+
+
 
 
 if __name__ == '__main__':

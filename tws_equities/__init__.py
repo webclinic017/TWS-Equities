@@ -12,6 +12,9 @@ from tws_equities.controller import convert
 from tws_equities.controller import metrics
 
 
+RED_CROSS = u'\u274C'
+GREEN_TICK = u'\u2705'
+
 __author__ = {'Mandeep Singh'}
 __copyright__ = '© 2021 K2Q Capital Limited'
 __license__ = 'MIT'
@@ -37,5 +40,7 @@ __all__ = [
                 'download',
                 'convert',
                 'metrics',
-                'COMMAND_MAP'
+                'COMMAND_MAP',
+                'RED_CROSS',
+                'GREEN_TICK'
           ]

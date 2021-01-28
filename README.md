@@ -43,7 +43,7 @@ To be able to use this code to extract market data, user first needs have the co
 
 #### **Virtual Environment:**
 The project is dependent on a few 3rd-party libraries that include:
-> - [Alive-Progress](https://pypi.org/project/alive-progress/)</a>
+> - [Alive-Progress](https://pypi.org/project/alive-progress/)
 > - [IBAPI](https://interactivebrokers.github.io/tws-api/introduction.html)
 > - [Pandas](https://pypi.org/project/pandas/)
 
@@ -72,7 +72,9 @@ User can start interacting with the code via given Command Line Interface(CLI). 
 parameters)
 
 CLI no longer outputs data to console because the data object retrieved from the API can be huge. Though the downloaded data will be cached inside the directory called "historical_data", which would again be used to generate a final CSV file. User can still access raw data from "historical_data" which would look something like this:
-> ```
+
+> Successful extraction:
+```
     {
       "1301": {
         "bar_data": [
@@ -98,10 +100,35 @@ CLI no longer outputs data to console because the data object retrieved from the
         }
       }
     }
-> ```
+```
 
-**NOTE:**
-- In case of an error, bar_data will not be available and instead `_error_stack` inside the `meta_data` object will be populated.
+> Failed extraction:
+```
+    {
+      "1301": {
+        "bar_data": [],
+        "meta_data": {
+          "_error_stack": [
+            {
+                "code": -1,
+                "message": "data extraction request timed out after: 3 seconds."
+            },
+            {
+                "code": 162,
+                "message": "Historical Market Data Service error message:HMDS query returned no data: 1301.
+                T@SMART Trades"
+            }
+          ],
+          "attempt": 1,
+          "end": "20210119  09:01:00",
+          "start": "20210119  09:01:00",
+          "status": true,
+          "ecode": 1301
+        }
+      }
+    }
+
+```
 
 ---
 
@@ -158,7 +185,37 @@ Kindly run the follo command for more information:
 ---
 
 ### Sample commands:
-To be addedd soon...
+- Trigger a run for current date with default parameters:
+>```python -m tws_equities run```
+
+- Trigger a run for a specific date:
+>```python -m tws_equities run -ed 20201213```
+
+- Trigger a run for a date range:
+> ```python -m tws_equities run -sd 20210110 -ed 20210118```
+
+- Trigger a run with custom parameters:
+> - Modify bar-size:
+>> ```python -m tws_equities run -b "5 mins"```
+
+> - Modify duration of data extracted:
+>> ```python -m tws_equities run -d "1 Day"```
+
+> - Modify input file:
+>> ```python -m tws_equities run tickers -f ~/Users/downloads/test_file.csv```
+
+**NOTE:**
+
+- Please use the "--help / -h" option against the CLI to browse through the documentation and to view all 
+  acceptable input values.
+- All these paramters can be used in any combination, but it worth noting that having a large value for 
+  duration(ex: 10 Day) with a highly-granular bar-size(ex: 1 min) will lead to significantly larger output 
+  CSV file, which would be resource intensive for the program and also much harder to comprehend in any 
+  spreadsheet viewer. A better option would be to distribute your extraction across a date-range by using 
+  start-date option.
+- When using any external CSV file as input, user must ensure that the file has a column in of 
+  the following values "ecode / e_code / code / ticker / ticker_id" where ticker IDs are stored
+  (case-insensitive).
 
 ---
 
@@ -197,7 +254,6 @@ mentioned under Raise a bug section.
 > Project Owner: **Aman Oberoi**
 >> Developers:
 >>> - **Mandeep Singh**
->>> - **Kiran Kumar**
 
 ---
 

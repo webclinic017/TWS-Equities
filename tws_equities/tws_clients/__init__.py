@@ -81,8 +81,8 @@ def _prep_for_extraction(tickers, end_date, end_time):
     return tickers, cache_success, cache_failure
 
 
-def _extractor(tickers, end_date, end_time, duration, bar_size, what_to_show, use_rth,
-               date_format, keep_upto_date, chart_options):
+def extractor(tickers, end_date, end_time='15:01:00', duration='1 D', bar_size='1 min', what_to_show='TRADES',
+              use_rth=1, date_format=1, keep_upto_date=False, chart_options=()):
     client = HistoricalDataExtractor(end_date=end_date, end_time=end_time, duration=duration,
                                      bar_size=bar_size, what_to_show=what_to_show, use_rth=use_rth,
                                      date_format=date_format, keep_upto_date=keep_upto_date,
@@ -100,7 +100,7 @@ def _run_extractor(batches, end_date, end_time, duration, bar_size, what_to_show
     with alive_bar(total=total, **_BAR_CONFIG) as bar:
         for i in range(total):
             batch = batches[i]
-            temp = _extractor(batch, end_date, end_time, duration, bar_size, what_to_show,
+            temp = extractor(batch, end_date, end_time, duration, bar_size, what_to_show,
                               use_rth, date_format, keep_upto_date, chart_options)
             data.update(temp)
             _time_to_cache = (i+1 == total) or ((i > 0) and (i % _CACHE_THRESHOLD == 0))

@@ -20,7 +20,7 @@ import signal
 
 
 OS_IS_UNIX = os_name == 'posix'
-_LOGGER = get_logger(__name__)
+# _LOGGER = get_logger(__name__)
 flatten = chain.from_iterable
 
 
@@ -49,7 +49,7 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
         self.keep_upto_date = keep_upto_date
         self.chart_options = chart_options
         self.timeout = timeout
-        self.logger = logger or _LOGGER
+        self.logger = logger  # or _LOGGER
         self.max_attempts = max_attempts
         self.data = None
 
@@ -75,18 +75,13 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
 
     def _log_message(self, message, level):
         """
-        Logs message if logger has been initialized.
-        :param message: message to log
-        :param level: level of the message
-    """
+            Logs message if logger has been initialized.
+            :param message: message to log
+            :param level: level of the message
+        """
         if self.logger is not None:
-            level_map = {
-                            'debug': self.logger.debug,
-                            'info': self.logger.info,
-                            'warning': self.logger.warning,
-                            'error': self.logger.error,
-                            'critical': self.logger.critical
-                        }
+            level_map = {'debug': self.logger.debug, 'info': self.logger.info, 'warning': self.logger.warning,
+                         'error': self.logger.error, 'critical': self.logger.critical}
             log = level_map.get(level, 'error')
             log(message)
 

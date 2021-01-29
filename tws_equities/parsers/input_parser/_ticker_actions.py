@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from argparse import Action
 from tws_equities.data_files import get_tickers_from_user_file
 

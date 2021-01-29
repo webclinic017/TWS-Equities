@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ibapi.wrapper import EWrapper
 from ibapi.client import EClient
 

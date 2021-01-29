@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 import pytest
 from datetime import datetime as dt
 from tws_equities.tws_clients import extractor

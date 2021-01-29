@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 from tws_equities.data_files.input_data import get_default_tickers
 from tws_equities.data_files.input_data import get_tickers_from_user_file
 from tws_equities.data_files.input_data import get_japan_indices

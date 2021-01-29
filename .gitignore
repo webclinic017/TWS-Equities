@@ -3,9 +3,10 @@
 .idea/
 *.xml
 *.html
-data_files/historical_data/*
-!data_files/historical_data/*.py
 logs/
+historical_data/
+.pytest_cache/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

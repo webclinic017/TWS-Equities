@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from datetime import datetime as dt
 from tws_equities.parsers.input_parser._input_types import INPUT_TYPES
 from tws_equities.parsers.input_parser._ticker_actions import TICKER_ACTIONS

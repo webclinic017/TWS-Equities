@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from argparse import ArgumentTypeError
 from datetime import datetime as dt
 from os import getcwd

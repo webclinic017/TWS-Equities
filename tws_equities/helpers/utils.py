@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime as dt
 from datetime import timedelta
@@ -5,6 +7,7 @@ from functools import partial
 import inspect
 from json import dumps
 from json import loads
+from os.path import dirname
 from os.path import isdir
 from os.path import join
 from os.path import isfile
@@ -18,6 +21,10 @@ import pandas as pd
 from time import time
 from time import sleep
 from sys import stdout
+
+
+def get_project_root():
+    return dirname(dirname(dirname(__file__)))
 
 
 def write_to_console(message, pointer='=>', verbose=False, indent=0, end='\n'):

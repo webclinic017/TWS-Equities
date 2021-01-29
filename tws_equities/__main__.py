@@ -1,4 +1,5 @@
 #! TWS-Project/venv/bin/python3.9
+# -*- coding: utf-8 -*-
 
 from tws_equities import parse_user_args
 from tws_equities import setup_logger
@@ -6,7 +7,6 @@ from tws_equities import COMMAND_MAP
 from tws_equities import RED_CROSS as _RED_CROSS
 from sys import stdout
 from sys import stderr
-# from json import dumps
 
 
 # load user input
@@ -26,7 +26,6 @@ logger = setup_logger(__name__, verbose=verbose, debug=debug)
 def main():
     try:
         target_function = COMMAND_MAP[command]
-        # print(dumps(user_args, indent=1, sort_keys=True))
         target_function(**user_args)
     except KeyboardInterrupt:
         _message = 'Detected keyboard interruption from the user, terminating program....'

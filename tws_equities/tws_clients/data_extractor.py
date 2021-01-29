@@ -1,4 +1,5 @@
 #! TWS-Project/venv/bin/python3.9
+# -*- coding: utf-8 -*-
 
 """
     Historical data extractor, written around TWS API(reqHistoricalData)

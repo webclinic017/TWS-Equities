@@ -1,35 +1,5 @@
-#! TWS-Project/venv/bin/python3.9
-
-"""
-    © 2020 K2Q Capital Limited
-    All rights reserved.
-
-                        TWS: Equities Data Extractor
-                        ----------------------------
-    This module is the main controller built around "HistoricalDataExtractor"
-    client. It intends to provides a Command Line Interface (CLI), using
-    Python's "argparse" module(https://docs.python.org/3/library/argparse.html),
-    to extract historical bar data for Japanese Equities.
-
-    Sample Commands:
-    ---------------
-        - Pass a list of tickers:
-            python controller.py -ed 20201210 -et 09:10:00 tickers -l 1301 1332 1333
-        - Pass a file path for tickers:
-            - Load default input (Input File: TWS Project/data_files/input_data/tickers.csv)
-                python controller.py -ed 20201210 -et 09:10:00 tickers -f default
-            - Load custom input from a different file:
-                python controller.py -ed 20201210 -et 09:10:00 tickers -f <user_defined_file_path>
-            _ Load data from a Google Sheet:
-                *** Not supported yet!
-        - Export extracted data to JSON files:
-            python controller.py -ed 20201210 -et -dd 09:10:00 tickers -l 1301 1332 1333
-
-        - NOTE:
-            - Data is exported to: 'TWS Project/data_files/historical_data/'.
-            - Data is segregated based on end date and extraction status.
-            - Tickers must be passed as the last input to the CLI (to be handled).
-"""
+#!TWS-Project/venv/bin/python3.9
+# -*- coding: utf-8 -*-
 
 
 from tws_equities.data_files import create_csv_dump
@@ -84,7 +54,7 @@ def metrics(tickers=None, start_date=None, end_date=None, end_time='15:01:00', v
 
 
 def run(tickers=None, start_date=None, end_date=None, end_time=None, duration='1 D',
-        bar_size='1 min', what_to_show='TRADES', use_rth=1, verbose=False):
+        bar_size='1 min', what_to_show='TRADES', use_rth=1, verbose=False, debug=False):
     download(tickers=tickers, start_date=start_date, end_date=end_date, end_time=end_time,
              duration=duration, bar_size=bar_size, what_to_show=what_to_show, use_rth=use_rth,
              verbose=verbose)

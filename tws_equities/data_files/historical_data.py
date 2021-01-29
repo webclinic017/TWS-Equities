@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 from alive_progress import alive_bar
 import pandas as pd
 from sys import stdout

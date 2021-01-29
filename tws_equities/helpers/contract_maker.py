@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ibapi.client import Contract
 
 

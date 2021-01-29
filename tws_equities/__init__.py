@@ -1,6 +1,16 @@
+# -*- coding: utf-8 -*-
+
 """
     ©2021 K2Q Capital Limited.
     All rights reserved.
+
+    This Python package provides access to Historical Bar-Data for Japanese Equities using TWS API.
+    Data is pre-formatted into a JSON object for immediate consumption, an error stack will be provided in
+    case of a failure.
+
+    This package also provides a CLI to easily the built-in functionalities, run the follwoing command in
+    your terminal to view all the options & commands available:
+        - python -m tws_equities -h
 """
 
 

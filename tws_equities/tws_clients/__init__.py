@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from alive_progress import alive_bar
 
 from tws_equities.helpers import isfile
@@ -20,9 +22,8 @@ from tws_equities.tws_clients.data_extractor import HistoricalDataExtractor
 
 
 # TODO: add info messages to console
-# TODO: find a better way to do this
-# TODO: duplicate file creation
-# TODO: input_tickers caching
+# TODO: handle duplicate file creation
+# TODO: re-use cached input tickers
 _BATCH_SIZE = 30
 _CACHE_THRESHOLD = 10
 
@@ -181,7 +182,7 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
                                                   chart_options, cache_success, cache_failure,
                                                   bar_title=bar_title)
 
-    # feedback loop
+    # feedback loop, process failed tickers until we hit the max attempt threshold
     if bool(failure_files):
         run_counter += 1
         if run_counter <= max_attempts:

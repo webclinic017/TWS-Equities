@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from os.path import isfile
 from os.path import dirname
 from os.path import join

@@ -15,7 +15,7 @@
 
 
 from tws_equities.parsers import parse_user_args
-from tws_equities.controller import setup_logger
+from tws_equities.helpers import get_logger
 from tws_equities.controller import run
 from tws_equities.controller import download
 from tws_equities.controller import convert
@@ -45,12 +45,12 @@ COMMAND_MAP = {
 
 __all__ = [
                 'parse_user_args',
-                'setup_logger',
                 'run',
                 'download',
                 'convert',
                 'metrics',
+                'get_logger',
                 'COMMAND_MAP',
                 'RED_CROSS',
-                'GREEN_TICK'
+                'GREEN_TICK',
           ]

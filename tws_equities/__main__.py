@@ -1,13 +1,16 @@
 #! TWS-Project/venv/bin/python3.9
 # -*- coding: utf-8 -*-
 
-from tws_equities import parse_user_args
-from tws_equities import setup_logger
-from tws_equities import COMMAND_MAP
-from tws_equities import RED_CROSS as _RED_CROSS
 from sys import stdout
 from sys import stderr
+# from logging import getLogger
+# from logging import  Formatter
+# from logging.handlers import TimedRotatingFileHandler
 
+from tws_equities import parse_user_args
+from tws_equities import get_logger
+from tws_equities import COMMAND_MAP
+from tws_equities import RED_CROSS as _RED_CROSS
 
 # load user input
 user_args = parse_user_args()
@@ -18,13 +21,14 @@ command = user_args['command']
 del user_args['command']
 
 # setup root logger
-verbose, debug = user_args['verbose'], user_args['debug']
+debug = user_args['debug']
 del user_args['debug']
-logger = setup_logger(__name__, verbose=verbose, debug=debug)
+logger = get_logger(__name__, debug=debug)
 
 
 def main():
     try:
+        logger.info(f'Parsed user arguments, triggering target function for: {command}')
         target_function = COMMAND_MAP[command]
         target_function(**user_args)
     except KeyboardInterrupt:

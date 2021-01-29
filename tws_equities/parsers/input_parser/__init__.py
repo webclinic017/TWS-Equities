@@ -2,12 +2,11 @@
 
 from argparse import ArgumentParser
 from tws_equities.data_files import get_default_tickers
-# from tws_equities.data_files import get_tickers_from_user_file
 from tws_equities.parsers.input_parser._cli_config import CLI_CONFIG
-from sys import stdout
+from tws_equities.helpers import write_to_console
+
 # TODO: build uploader
 # TODO: allow the user to provide an output location
-# TODO: good to have: new data formats apart from CSV and JSON
 
 
 def _add_positional_arguments(parser, config):
@@ -67,19 +66,21 @@ def parse_user_args(command_line=None):
 
     # user did not choose a command to run
     if args.command is None:
-        stdout.write('User should specify which command to run, '
-                     'please choose from the options given below.\n\n')
+        write_to_console('User should specify which command to run, please choose from the given options.\n',
+                         verbose=True)
         parser.print_help()
         exit(0)
 
     # user did not specify tickers
     if hasattr(args, 'tickers') and args.tickers is None:
-        stdout.write(f'User did not specify target tickers, loading from default input file.\n')
-        args.tickers = get_default_tickers()[:100]  # TODO: remove it
+        write_to_console('User did not specify target tickers, loading from default input file.\n',
+                         verbose=True)
+        args.tickers = get_default_tickers()
 
     return vars(args)
 
 
 if __name__ == '__main__':
+    # specify test arguments in list -> (ex: ['run', 'tickers', '-l', '1', '2'])
     command_line = None
-    parse_user_args(command_line=command_line)
+    print(f'User Args: {parse_user_args(command_line=command_line)}')

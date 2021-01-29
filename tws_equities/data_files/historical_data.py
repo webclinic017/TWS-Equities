@@ -3,7 +3,7 @@
 
 from alive_progress import alive_bar
 import pandas as pd
-from sys import stdout
+from logging import getLogger
 
 from tws_equities.data_files import get_japan_indices
 from tws_equities.helpers import read_json_file
@@ -17,20 +17,35 @@ from tws_equities.helpers import isdir
 from tws_equities.helpers import join
 from tws_equities.helpers import sep
 from tws_equities.helpers import glob
+from tws_equities.helpers import write_to_console
 
-from tws_equities.helpers import BAR_CONFIG as _BAR_CONFIG
 from tws_equities.helpers import HISTORICAL_DATA_STORAGE as _HISTORICAL_DATA_STORAGE
+
+
+_RED_CROSS = u'\u274C'
+_GREEN_TICK = u'\u2705'
+_BAR_CONFIG = {
+                    'title': '=> Status∶',
+                    'calibrate': 5,
+                    'force_tty': True,
+                    'spinner': 'dots_reverse',
+                    'bar': 'smooth'
+              }
+logger = getLogger(__name__)
 
 
 # TODO: both dataframe generators could be refactored into a generic fucntion.
 # fixme: account for empty dataframes
-def generate_success_dataframe(target_directory):
+def generate_success_dataframe(target_directory, bar_title=None, verbose=False):
     """
         Creates a pandas data fame from JSON files present at the given failure location.
         Assumes that all these JSON files have valid bar data.
         :param target_directory: location to read JSON files from
+        :param bar_title: message to show infron of progress bar
+        :param verbose: set to true to see info messages on console
     """
-    stdout.write(f'=> Generating dataframe for success tickers...\n')
+    if bar_title is not None:
+        _BAR_CONFIG['title'] = bar_title
 
     def _get_ticker_id(file_name):
         return int(file_name.split(sep)[-1].split('.')[0])
@@ -50,6 +65,7 @@ def generate_success_dataframe(target_directory):
     data = pd.DataFrame(columns=expected_columns)
 
     if bool(total):
+        write_to_console(f'=> Generating dataframe for success tickers...', verbose=verbose)
         json_generator = map(read_json_file, success_files)
         counter = 0  # to count temp files
         with alive_bar(total=total, **_BAR_CONFIG) as bar:
@@ -81,13 +97,16 @@ def generate_success_dataframe(target_directory):
     return data
 
 
-def generate_failure_dataframe(target_directory):
+def generate_failure_dataframe(target_directory, bar_title=None, verbose=False):
     """
         Creates a pandas data fame from JSON files present at the given failure location.
         Assumes that all these JSON files have valid error stacks.
         :param target_directory: location to read JSON files from
+        :param bar_title: message to show infron of progress bar
+        :param verbose: set to true to see info messages on console
     """
-    stdout.write(f'=> Generting dataframe for failure tickers...\n')
+    if bar_title is not None:
+        _BAR_CONFIG['title'] = bar_title
 
     def _get_ticker_id(file_name):
         return int(file_name.split(sep)[-1].split('.')[0])
@@ -106,6 +125,7 @@ def generate_failure_dataframe(target_directory):
     total = len(failure_files)
 
     if bool(total):
+        write_to_console(f'=> Generting dataframe for failure tickers...', verbose=verbose)
         json_generator = map(read_json_file, failure_files)
         counter = 0  # to count temp CSV files
         with alive_bar(total=total, **_BAR_CONFIG) as bar:
@@ -142,45 +162,44 @@ def generate_failure_dataframe(target_directory):
     return data
 
 
-def create_csv_dump(target_date, end_time='15:01:00'):
+def create_csv_dump(target_date, end_time='15:01:00', verbose=False):
     """
         Creates a CSV file from JSON files for a given date.
         Raise an error if directory for the gven is not present.
         Created CSV files will be saved at the same location by the name:
             'success.csv' & 'failure.csv'
     """
-    stdout.write(f'{"-"*40} Init Conversion {"-"*40}\n')
+    logger.info('Generating final CSV dump')
+    _date = f'{target_date[:4]}/{target_date[4:6]}/{target_date[6:]}'
+    write_to_console(f'{"-"*30} CSV Conversion: {_date} {"-"*31}', verbose=True)
     target_directory = join(_HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
+
     if not isdir(target_directory):
         raise NotADirectoryError(f'Could not find a data storage directory for date: {target_date}')
+
     success_directory = join(target_directory, '.success')
     failure_directory = join(target_directory, '.failure')
 
     if isdir(success_directory):
         path = join(target_directory, 'success.csv')
-        success = generate_success_dataframe(success_directory)
+        success = generate_success_dataframe(success_directory, bar_title='Success', verbose=verbose)
         success.to_csv(path, index=False)
+        logger.debug(f'Success file saved at: {path}')
 
     if isdir(failure_directory):
-        failure = generate_failure_dataframe(failure_directory)
+        failure = generate_failure_dataframe(failure_directory, bar_title='Failure', verbose=verbose)
         path = join(target_directory, 'failure.csv')
         failure.to_csv(path, index=False)
+        logger.debug(f'Failure file saved at: {path}')
 
-    stdout.write('\n')
 
-
-def _get_ratio(input_items, output_items, decimal_palces=3):
-    return_value = 0.0
-    try:
-        return_value = round(len(output_items) / len(input_items), decimal_palces)
-    except ZeroDivisionError:
-        pass
-    return return_value
+def _get_marker(ratio, threshold=0.95):
+    return _GREEN_TICK if ratio >= threshold else _RED_CROSS
 
 
 # noinspection PyUnusedLocal
 # TODO: refactor
-def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=None):
+def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=None, verbose=False):
     """
         Generates metrics about success & failure tickers.
         Metrics are saved into a new file called 'metrics.csv'
@@ -188,7 +207,9 @@ def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=
         :param end_time: end time for metrics are to be generated
         :param input_tickers: tickers for which metrics are to be generated
     """
-    stdout.write('Generating final metrics, please wait...\n')
+    logger.info('Generating final extraction metrics')
+    _date = f'{target_date[:4]}/{target_date[4:6]}/{target_date[6:]}'
+    write_to_console(f'{"-"*30} Metrics Generation: {_date} {"-"*31}', verbose=True)
     expected_metrics = [
         'total_tickers', 'total_extracted', 'total_extraction_ratio',
         'extraction_successful', 'extraction_failure',
@@ -213,8 +234,8 @@ def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=
     if not isfile(failure_file):
         raise FileNotFoundError(f'Can not find failure file: {failure_file}')
 
+    input_tickers_file = join(target_directory, 'input_tickers.json')
     if input_tickers is None:
-        input_tickers_file = join(target_directory, 'input_tickers.json')
         if not isfile(input_tickers_file):
             raise FileNotFoundError(f'Can not find input tickers file: {input_tickers_file}')
         input_tickers = read_json_file(input_tickers_file)
@@ -247,6 +268,11 @@ def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=
 
     success_ratio = round(extraction_successful / total_tickers, 3)
     failure_ratio = round(extraction_failure / total_tickers, 3)
+    logger.debug(f'Updated over-all extraction ratio: {success_ratio}')
+    write_to_console(f'Over-all Extraction: {_get_marker(success_ratio)}', pointer='->',
+                     indent=2, verbose=True)
+    write_to_console(f'Over-all Success Ratio: {success_ratio}',
+                     pointer='-', indent=4, verbose=verbose)
 
     n_225_input = list(set(input_tickers).intersection(n_225_tickers))
     if bool(n_225_input):
@@ -255,6 +281,13 @@ def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=
         n_225_failure = list(set(failure_tickers).intersection(n_225_input))
         n_225_success_ratio = round(len(n_225_success) / len(n_225_input), 3)
         n_225_failure_ratio = round(len(n_225_failure) / len(n_225_input), 3)
+        logger.debug(f'Updated N225 extraction ratio: {n_225_success_ratio}')
+        write_to_console(f'N225 Extraction: {_get_marker(n_225_success_ratio)}', pointer='->',
+                         indent=2, verbose=True)
+        write_to_console(f'Over-all Success Ratio: {n_225_success_ratio}',
+                         pointer='-', indent=4, verbose=verbose)
+    else:
+        logger.debug('Could not find any N 225 tickers in the given input')
 
     topix_input = list(set(input_tickers).intersection(topix_tickers))
     if bool(topix_input):
@@ -263,6 +296,13 @@ def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=
         topix_failure = list(set(failure_tickers).intersection(topix_input))
         topix_success_ratio = round(len(topix_success) / len(topix_input), 3)
         topix_failure_ratio = round(len(topix_failure) / len(topix_input), 3)
+        logger.debug(f'Updated Topix extraction ratio: {topix_success_ratio}')
+        write_to_console(f'Topix Extraction: {_get_marker(topix_success_ratio)}', pointer='->',
+                         indent=2, verbose=True)
+        write_to_console(f'Topix Success Ratio: {topix_success_ratio}',
+                         pointer='-', indent=4, verbose=verbose)
+    else:
+        logger.debug('Could not find any Topix tickers in the given input')
 
     jasdaq_20_input = list(set(input_tickers).intersection(jasdaq_20_tickers))
     if bool(jasdaq_20_input):
@@ -271,17 +311,26 @@ def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=
         jasdaq_20_failure = list(set(failure_tickers).intersection(jasdaq_20_input))
         jasdaq_20_success_ratio = round(len(jasdaq_20_success) / len(jasdaq_20_input), 3)
         jasdaq_20_failure_ratio = round(len(jasdaq_20_failure) / len(jasdaq_20_input), 3)
+        logger.debug(f'Updated JASDAQ 20 extraction ratio: {jasdaq_20_success_ratio}')
+        write_to_console(f'JASDAQ 20 Extraction: {_get_marker(jasdaq_20_success_ratio)}', pointer='->',
+                         indent=2, verbose=True)
+        write_to_console(f'JASDAQ 20 Success Ratio: {jasdaq_20_success_ratio}',
+                         pointer='-', indent=4, verbose=verbose)
+    else:
+        logger.debug('Could not find any JASDAQ 20 tickers in the given input')
 
     missing_tickers = list(set(input_tickers).difference(success_tickers + failure_tickers))
     missing_tickers_ratio = round(len(missing_tickers) / total_tickers, 3)
+    logger.debug(f'Updated missing tickers ratio: {missing_tickers_ratio}')
 
     all_vars = vars()
     for key in all_vars:
         if key in expected_metrics:
             metrics[key] = all_vars[key]
 
-    save_data_as_json(metrics, join(target_directory, 'metrics.json'))
-    stdout.write('\n')
+    metrics_file = join(target_directory, 'metrics.json')
+    save_data_as_json(metrics, metrics_file)
+    logger.debug(f'Metrics saved at: {metrics_file}')
 
 
 if __name__ == '__main__':

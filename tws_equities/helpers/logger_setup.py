@@ -1,36 +1,28 @@
 # -*- coding: utf-8 -*-
 
-from logging import addLevelName
 from logging.config import dictConfig
 from logging import getLogger
+from logging import Formatter
+from logging.handlers import TimedRotatingFileHandler
 
-from tws_equities.helpers import dt
-from tws_equities.helpers import join
-from tws_equities.helpers import isdir
-from tws_equities.helpers import makedirs
-from tws_equities.helpers import get_project_root
+from os.path import isdir
+from os.path import dirname
+from os.path import join
+from os import makedirs
 
-# from tws_equities.helpers import PROJECT_ROOT
-
-
-# from datetime import datetime as dt
-# from os.path import dirname
-# from os.path import join
-# from os.path import isdir
-# from os import makedirs
-
-
-LOGGING_CONFIG = {
+_PROJECT_ROOT = dirname(dirname(dirname(__file__)))
+LOG_FORMAT = '%(asctime)s | %(name)s:%(levelname)s | %(module)s:%(funcName)s:%(lineno)d | %(message)s'
+LOG_LOCATION = join(_PROJECT_ROOT, 'logs')
+LOG_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'file': {
-            'format': '%(asctime)s | %(name)s:%(levelname)s | '
-                      '%(module)s:%(funcName)s:%(lineno)d | %(message)s',
+            'format': LOG_FORMAT,
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
         'console': {
-            'format': '%(asctime)s | %(levelname)s | %(module)s:%(lineno)d | %(message)s',
+            'format': '=> %(levelname)s | %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         }
     },
@@ -51,108 +43,62 @@ LOGGING_CONFIG = {
     },
     'loggers': {
         'root': {
-            'handlers': ['console'],
+            'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': False
         },
         'child': {
-            'handlers': ['console'],
+            'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': False
         }
     }
 }
-LOG_LEVEL_MAP = {
-    10: 'DEBUG',
-    20: 'INFO',
-    30: 'WARNING',
-    40: 'ERROR',
-    50: 'CRITICAL'
-}
-LOG_COLOR_MAP = {
-    'DEBUG': '\x1b[32;1m',  # green
-    'INFO': '\x1b[34;1m',  # blue
-    'WARNING': '\x1b[33;1m',  # yellow
-    'ERROR': '\x1b[31;1m',  # red
-    'CRITICAL': '\x1b[31;7m'  # bg: red | fg: black
-}
-LOG_LOCATION = join(get_project_root(), 'logs')
 
 
 def get_log_file():
     """
         Sets up log directory , creates a log file for current run and return full path for the same.
     """
-    date_format, time_format = '%Y-%m-%d', '%H_%M_%S'
-    current_date_time = dt.today()
-    date = dt.strftime(current_date_time, date_format)
-    time = dt.strftime(current_date_time, time_format)
-    log_location = join(LOG_LOCATION, date)
+    log_location = LOG_LOCATION
     if not(isdir(log_location)):
         makedirs(log_location)
-    log_file_name = join(log_location, f'{time}.log')
+    log_file_name = join(log_location, 'app.log')
     return log_file_name
 
 
-def update_logging_config(name, level):
-    """
-        Update log level and add a log file in the global configuration.
-    """
-    # update logging level based on user input
-    for handler in LOGGING_CONFIG['handlers']:
-        LOGGING_CONFIG['handlers'][handler]['level'] = level
-
-    # user wants to debug a problem, start writing logs to a file
-    if level == 'DEBUG':
-        LOGGING_CONFIG['handlers']['file']['filename'] = get_log_file()
-        LOGGING_CONFIG['loggers'][name]['handlers'].append('file')
-
-
-def get_logger(name, verbose=False, debug=False, colored=False):
-    """
-        Initialize & return logger
-        :param name: name of the logger
-        :param verbose: returns a console logger, with log level set to INFO
-        :param debug: returns a file logger, with log level set to DEBUG
-        :param colored: color highlight log level based on severity(recommended for logging to console), default=False
-        :return: logger object
-    """
+def get_logger(name, debug=False):
     name = 'root' if name == '__main__' else 'child'
-    level = 'DEBUG' if debug else 'INFO' if verbose else 'WARNING'
-    if name == 'root':  # do this only once, for the root logger
-        update_logging_config(name, level)
+    if name == 'root':
+        level = 'DEBUG' if debug else 'WARNING'
+        for handler in LOG_CONFIG['handlers']:
+            LOG_CONFIG['handlers'][handler]['level'] = level
+        LOG_CONFIG['handlers']['file']['filename'] = get_log_file()
 
-    # load logging config
-    dictConfig(LOGGING_CONFIG)
-
-    # init logger
+        dictConfig(LOG_CONFIG)
     logger = getLogger(name)
 
-    # add color support for log level
-    if colored:
-        for level, label in LOG_LEVEL_MAP.items():
-            color = LOG_COLOR_MAP.get(label, '\x1b[0m')
-            addLevelName(level, f'{color}{label}\x1b[0m')
+    formatter = Formatter(LOG_CONFIG['formatters']['file']['format'])
+    file_name = LOG_CONFIG['handlers']['file']['filename']
+    handler = TimedRotatingFileHandler(file_name, when='M', interval=1, backupCount=10, delay=True)
+    handler.setLevel(LOG_CONFIG['loggers'][name]['level'])
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
     return logger
 
 
-def clean_obsolete_logs(duration=7):
-    """
-        Cleans logs files and directories older than given duration.
-        :param duration: number of days prior to which logs are to be cleaned
-    """
-    if not isinstance(duration, int):
-        raise TypeError('Duration must be an integer.')
-    if duration < 1:
-        raise ValueError('Duration must be a positive integer.')
-
-    pass
-
-
 if __name__ == '__main__':
-    logger = get_logger(__name__, verbose=True, debug=True, colored=True)
-    logger.debug('test debug')
-    logger.info('test info')
-    logger.warning('test warning')
-    logger.error('test error')
-    logger.critical('test critical')
+    logger = get_logger(__name__, debug=True)
+    logger.debug('root logger test debug')
+    logger.info('root loggertest info')
+    logger.warning('root loggertest warning')
+    logger.error('root loggertest error')
+    logger.critical('root loggertest critical')
+
+    logger = get_logger('child', debug=False)
+    logger.debug('child logger test debug')
+    logger.info('child logger test info')
+    logger.warning('child logger test warning')
+    logger.error('child logger test error')
+    logger.critical('child logger test critical')

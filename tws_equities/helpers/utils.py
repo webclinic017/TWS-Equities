@@ -22,9 +22,11 @@ from time import time
 from time import sleep
 from sys import stdout
 
+from tws_equities.helpers.logger_setup import get_logger
 
-def get_project_root():
-    return dirname(dirname(dirname(__file__)))
+
+logger = get_logger(__name__)
+PROJECT_ROOT = dirname(dirname(dirname(__file__)))
 
 
 def write_to_console(message, pointer='=>', verbose=False, indent=0, end='\n'):
@@ -35,7 +37,7 @@ def write_to_console(message, pointer='=>', verbose=False, indent=0, end='\n'):
 
     if verbose:
         stdout.write(f'{" " * (indent * 2)}{pointer} {message}{end}')
-        sleep(0.2 * (indent+1))
+        sleep(0.2 * (indent + 1))
 
 
 def timer(function):
@@ -195,9 +197,6 @@ def read_csv(file_path, target_columns=None):
 
 def get_files_by_type(target_directory, file_type='json'):
     return glob(join(target_directory, f'*.{file_type}'))
-
-
-
 
 
 if __name__ == '__main__':

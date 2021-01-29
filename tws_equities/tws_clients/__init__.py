@@ -12,20 +12,29 @@ from tws_equities.helpers import make_dirs
 from tws_equities.helpers import sep
 from tws_equities.helpers import save_data_as_json
 from tws_equities.helpers import write_to_console
+# from tws_equities.helpers import get_logger
 
-from tws_equities.helpers import BAR_CONFIG as _BAR_CONFIG
 from tws_equities.helpers import HISTORICAL_DATA_STORAGE as _HISTORICAL_DATA_STORAGE
 
 from tws_equities.tws_clients.base import TWSWrapper
 from tws_equities.tws_clients.base import TWSClient
 from tws_equities.tws_clients.data_extractor import HistoricalDataExtractor
 
+from logging import getLogger
 
 # TODO: add info messages to console
 # TODO: handle duplicate file creation
 # TODO: re-use cached input tickers
 _BATCH_SIZE = 30
 _CACHE_THRESHOLD = 10
+_BAR_CONFIG = {
+                    'title': '=> Status∶',
+                    'calibrate': 5,
+                    'force_tty': True,
+                    'spinner': 'dots_reverse',
+                    'bar': 'smooth'
+              }
+logger = getLogger(__name__)
 
 
 def _cache_data(data, cache_success, cache_failure):
@@ -87,7 +96,7 @@ def extractor(tickers, end_date, end_time='15:01:00', duration='1 D', bar_size='
     client = HistoricalDataExtractor(end_date=end_date, end_time=end_time, duration=duration,
                                      bar_size=bar_size, what_to_show=what_to_show, use_rth=use_rth,
                                      date_format=date_format, keep_upto_date=keep_upto_date,
-                                     chart_options=chart_options, max_attempts=1)
+                                     chart_options=chart_options, max_attempts=1, logger=logger)
     client.extract_historical_data(tickers)
     return client.data
 
@@ -98,16 +107,18 @@ def _run_extractor(batches, end_date, end_time, duration, bar_size, what_to_show
         _BAR_CONFIG['title'] = bar_title
 
     data, total = {}, len(batches)
+    logger.debug(f'Batch-wise extraction initiated, total batches: {total}')
     with alive_bar(total=total, **_BAR_CONFIG) as bar:
         for i in range(total):
             batch = batches[i]
             temp = extractor(batch, end_date, end_time, duration, bar_size, what_to_show,
-                              use_rth, date_format, keep_upto_date, chart_options)
+                             use_rth, date_format, keep_upto_date, chart_options)
             data.update(temp)
             _time_to_cache = (i+1 == total) or ((i > 0) and (i % _CACHE_THRESHOLD == 0))
             if _time_to_cache:
                 if bool(data):
                     _cache_data(data, cache_success, cache_failure)
+                    logger.debug(f'Cached data for batch: {i+1}')
                     data = {}
             bar()  # update progress bar
     # return success & failure files
@@ -156,9 +167,10 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
         :param run_counter: counts the number of attempts performed, not to be used from outside
         :param verbose: set to True to display messages on console
     """
+    logger.info(f'Running extractor, attempt: {run_counter} | max attempts: {max_attempts}')
     if run_counter == 1:
         _date_formatted = f'{end_date[:4]}/{end_date[4:6]}/{end_date[6:]}'
-        message = f'{"-" * 30} Init Extraction: {_date_formatted} {"-" * 30}'
+        message = f'{"-" * 30} Data Extraction: {_date_formatted} {"-" * 30}'
         write_to_console(message, verbose=True)
 
     message = f'Setting things up for data-extraction...'

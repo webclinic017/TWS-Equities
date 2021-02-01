@@ -33,22 +33,22 @@ LOG_CONFIG = {
             'class': 'logging.StreamHandler',
             'stream': 'ext://sys.stdout',  # Default is stderr
         },
-        'file': {
-            'level': 'ERROR',
-            'formatter': 'file',
-            'class': 'logging.FileHandler',
-            'encoding': 'utf-8',
-            'filename': 'app.log'
-        }
+        # 'file': {
+        #     'level': 'ERROR',
+        #     'formatter': 'file',
+        #     'class': 'logging.FileHandler',
+        #     'encoding': 'utf-8',
+        #     'filename': 'app.log'
+        # }
     },
     'loggers': {
         'root': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False
         },
         'child': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False
         }
@@ -77,7 +77,7 @@ def get_logger(name, debug=False):
         for logger in LOG_CONFIG['loggers']:
             LOG_CONFIG['loggers'][logger]['level'] = level
 
-        LOG_CONFIG['handlers']['file']['filename'] = get_log_file()
+        # LOG_CONFIG['handlers']['file']['filename'] = get_log_file()
         dictConfig(LOG_CONFIG)
 
     logger = getLogger(name)
@@ -85,7 +85,7 @@ def get_logger(name, debug=False):
 
     if debug:
         formatter = Formatter(LOG_CONFIG['formatters']['file']['format'])
-        file_name = LOG_CONFIG['handlers']['file']['filename']
+        file_name = get_log_file()
         handler = TimedRotatingFileHandler(file_name, when='M', interval=10, backupCount=10, delay=True)
         handler.setLevel(LOG_CONFIG['loggers'][name]['level'])
         handler.setFormatter(formatter)
@@ -97,10 +97,10 @@ def get_logger(name, debug=False):
 if __name__ == '__main__':
     logger = get_logger(__name__, debug=True)
     logger.debug('root logger test debug')
-    logger.info('root loggertest info')
-    logger.warning('root loggertest warning')
-    logger.error('root loggertest error')
-    logger.critical('root loggertest critical')
+    logger.info('root logger test info')
+    logger.warning('root logger test warning')
+    logger.error('root logger test error')
+    logger.critical('root logger test critical')
 
     logger = get_logger('child', debug=False)
     logger.debug('child logger test debug')

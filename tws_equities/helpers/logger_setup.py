@@ -69,21 +69,27 @@ def get_log_file():
 
 def get_logger(name, debug=False):
     name = 'root' if name == '__main__' else 'child'
-    if name == 'root':
+    if name == 'root':  # TODO: find a better way to do this
         level = 'DEBUG' if debug else 'WARNING'
         for handler in LOG_CONFIG['handlers']:
             LOG_CONFIG['handlers'][handler]['level'] = level
+
+        for logger in LOG_CONFIG['loggers']:
+            LOG_CONFIG['loggers'][logger]['level'] = level
+
         LOG_CONFIG['handlers']['file']['filename'] = get_log_file()
-
         dictConfig(LOG_CONFIG)
-    logger = getLogger(name)
 
-    formatter = Formatter(LOG_CONFIG['formatters']['file']['format'])
-    file_name = LOG_CONFIG['handlers']['file']['filename']
-    handler = TimedRotatingFileHandler(file_name, when='M', interval=1, backupCount=10, delay=True)
-    handler.setLevel(LOG_CONFIG['loggers'][name]['level'])
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    logger = getLogger(name)
+    logger.setLevel(LOG_CONFIG['loggers']['root']['level'])
+
+    if debug:
+        formatter = Formatter(LOG_CONFIG['formatters']['file']['format'])
+        file_name = LOG_CONFIG['handlers']['file']['filename']
+        handler = TimedRotatingFileHandler(file_name, when='M', interval=10, backupCount=10, delay=True)
+        handler.setLevel(LOG_CONFIG['loggers'][name]['level'])
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
     return logger
 

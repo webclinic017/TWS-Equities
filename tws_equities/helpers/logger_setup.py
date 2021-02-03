@@ -70,7 +70,7 @@ def get_log_file():
 def get_logger(name, debug=False):
     name = 'root' if name == '__main__' else 'child'
     if name == 'root':  # TODO: find a better way to do this
-        level = 'DEBUG' if debug else 'WARNING'
+        level = 'DEBUG' if debug else 'CRITICAL'
         for handler in LOG_CONFIG['handlers']:
             LOG_CONFIG['handlers'][handler]['level'] = level
 

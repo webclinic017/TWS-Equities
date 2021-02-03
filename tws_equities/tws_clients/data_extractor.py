@@ -84,26 +84,33 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
         """
         # noinspection PyUnusedLocal
         def _handle_timeout(signum, frame):
-            _message = f'Historical data request timed out after: {self.timeout} seconds'
-            self.logger.critical(_message)
-            self.error(ticker, -1, _message)
+            try:
+                _message = f'Data request for ticker: {ticker} timed out after: {self.timeout} seconds'
+                self.error(ticker, -1, _message)
+            except OSError as e:  # TODO: make it work for Windows OS
+                self.logger.error(f'{e}')
+
         # TODO: final alarm
-        if OS_IS_UNIX:
-            signal.signal(signal.SIGALRM, _handle_timeout)
-            signal.alarm(self.timeout)
+        # if OS_IS_UNIX:
+        signal.signal(signal.SIGALRM, _handle_timeout)
+        signal.alarm(self.timeout)
 
     def _request_historical_data(self, ticker):
         """
             Sends request to TWS API
         """
-        self._set_timeout(ticker)
-        contract = create_stock(ticker)
-        end_date_time = f'{self.end_date} {self.end_time}'
-        self.logger.info(f'Requesting historical data for ticker: {ticker}')
-        self.data[ticker]['meta_data']['attempts'] += 1
-        self.reqHistoricalData(ticker, contract, end_date_time, self.duration, self.bar_size,
-                               self.what_to_show, self.use_rth, self.date_format, self.keep_upto_date,
-                               self.chart_options)
+        try:
+            if OS_IS_UNIX:
+                self._set_timeout(ticker)
+            contract = create_stock(ticker)
+            end_date_time = f'{self.end_date} {self.end_time}'
+            self.logger.info(f'Requesting historical data for ticker: {ticker}')
+            self.data[ticker]['meta_data']['attempts'] += 1
+            self.reqHistoricalData(ticker, contract, end_date_time, self.duration, self.bar_size,
+                                   self.what_to_show, self.use_rth, self.date_format, self.keep_upto_date,
+                                   self.chart_options)
+        except OSError as e:  # TODO: temporary piece, find a fix for Windows
+            self.logger.critical(f'{e}')
 
     def _extraction_check(self, ticker):
         """

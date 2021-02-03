@@ -249,10 +249,10 @@ It is recommended that users attach screenshot of the problem and also provide i
 
 ### Contact information:
 > Project Owner:
->> - **[Aman Oberoi](mailto:aman.oberoi@k2qcapital.com?subject=[Regarding TWS-Equities])**
+>> - **[Aman Oberoi](mailto:aman.oberoi@k2qcapital.com)**
 
 > Developers:
->> - **[Mandeep Singh](mailto:mandeep@amakaan.com?subject=[Regarding TWS-Equities])**
+>> - **[Mandeep Singh](mailto:mandeep@amakaan.com?subject=Regarding TWS-Equities)**
 
 ---
 

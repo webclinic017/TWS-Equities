@@ -232,11 +232,11 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
         if id == -1:
             # error code 502 indicates connection failure
             if code == 502:
-                self.logger.critical(f'Connection Failure: {message}, Error Code: {code}')
+                self.logger.error(f'Connection Failure: {message}, Error Code: {code}')
                 raise ConnectionError('Could not connect to TWS, please ensure TWS is running.')
             # error codes 2103, 2105, 2157 indicate broken connection
             if code in [2103, 2105, 2157]:
-                self.logger.critical(f'Insecure Connection: {message}, Error code: {code}')
+                self.logger.error(f'Insecure Connection: {message}, Error code: {code}')
                 raise ConnectionError(f'Detected broken connection, please try re-connecting the webfarms '
                                       f'in TWS.')
             # error codes 2104, 2106, 2158 indicate connection is OK

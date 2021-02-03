@@ -38,7 +38,7 @@ def main():
     except Exception as e:
         _message = f'Program Crashed: {e}'
         stderr.write(f'{_RED_CROSS} {_message}\n')
-        logger.critical(_message, exc_info=True)
+        logger.error(_message, exc_info=debug)
         if debug:
             raise e
     # TODO: run final cleanup here

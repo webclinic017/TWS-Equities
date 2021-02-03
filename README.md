@@ -2,22 +2,19 @@
 
 ---
 
+![GitHub top language](https://img.shields.io/github/languages/top/amanoberoik2q/TWS-Equities?color=darkgreen&logo=python&logoColor=yellow&style=plastic)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/amanoberoik2q/TWS-Equities?logo=git&style=plastic)
+![GitHub all releases](https://img.shields.io/github/downloads/amanoberoik2q/TWS-Equities/total?logo=github&style=plastic)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/amanoberoik2q/TWS-Equities?color=yellow&style=plastic)
+![GitHub](https://img.shields.io/github/license/amanoberoik2q/TWS-Equities?style=plastic)
+
+
+---
+
 Owner: **K2Q Capital Limited**  
 Author: **Mandeep Singh**  
 Updated: **January 19th 2021**  
 Version: **1.0.0**
-
----
-
-## Table Of Contents:
-- <a href="#About this project:">**About this project**</a>
-- <a href="#Prerequisites:">**Prerequisites**</a>
-- <a href="#How-to-use-this-project?">**How to use this project?**</a>
-- <a href="#Available-commands-&-options:">**Available Commands & Options**</a>
-- <a href="#Sample-Commands:">**Sample Commands**</a>
-- <a href="#How-to-contribute-to-this-project?">**How to contribute to this project?**</a>
-- <a href="#Contact-information:">**Contact Information**</a>
-- <a href="#License:">**License**</a>
 
 ---
 
@@ -137,7 +134,7 @@ The CLI provides four major commands to work with:
 #### Run:
 
 - **Desctiption:**  
-This command can be used to trigger a complete end to end run, which would include data download, conversion to CSV & finally metrics generation.
+  This command can be used to trigger a complete end to end run, which would include data download, conversion to CSV & finally metrics generation.
 
 
 - **Usage:**
@@ -155,7 +152,7 @@ This command can be used to trigger a complete end to end run, which would inclu
 - **Sub-Commands:**
 > **tickers:**
 >> - **Description:**  
-This command allows the user to pass in a custom ticker input to the prorgam, it provides 3 different ways to do that:
+     This command allows the user to pass in a custom ticker input to the prorgam, it provides 3 different ways to do that:
 >>> - **--list / -l:** Accepts a list of ticker IDs separated by white-space.
 >>> - **--file / -f:** Accepts a CSV file path as input to read tickers IDs.
 >>> - **--url / -u:** Will accept a google sheet URL as input to read tickers IDs, this feature is still under development and not available for usage yet.
@@ -166,20 +163,20 @@ This command allows the user to pass in a custom ticker input to the prorgam, it
 
 #### Download:
 - **Description:**
-This command allows the user to only download and store the bar-data. All options & sub-command available under "Run" section are applicable here as well.
-Kindly run the following command for more information:
+  This command allows the user to only download and store the bar-data. All options & sub-command available under "Run" section are applicable here as well.
+  Kindly run the following command for more information:
 > **`python -m tws_equities download -h`**
 
 #### Convert:
 - **Description:**
-This command allows the user to trigger data conversion from JSON to CSV format, please note that this command already assumes that user has downloaded the data from TWS.
-Kindly run the following command for more information:
+  This command allows the user to trigger data conversion from JSON to CSV format, please note that this command already assumes that user has downloaded the data from TWS.
+  Kindly run the following command for more information:
 > **`python -m tws_equities convert -h`**
 
 #### Metrics:
 - **Description:**
-This command will generate the data-extraction metrics for a given date, this feature is still a work in progress and not avilable for usage via CLI calls.
-Kindly run the follo command for more information:
+  This command will generate the data-extraction metrics for a given date, this feature is still a work in progress and not avilable for usage via CLI calls.
+  Kindly run the follo command for more information:
 > **`python -m tws_equities metrics -h`**
 
 ---
@@ -206,14 +203,14 @@ Kindly run the follo command for more information:
 
 **NOTE:**
 
-- Please use the "--help / -h" option against the CLI to browse through the documentation and to view all 
+- Please use the "--help / -h" option against the CLI to browse through the documentation and to view all
   acceptable input values.
-- All these paramters can be used in any combination, but it worth noting that having a large value for 
-  duration(ex: 10 Day) with a highly-granular bar-size(ex: 1 min) will lead to significantly larger output 
-  CSV file, which would be resource intensive for the program and also much harder to comprehend in any 
-  spreadsheet viewer. A better option would be to distribute your extraction across a date-range by using 
+- All these paramters can be used in any combination, but it worth noting that having a large value for
+  duration(ex: 10 Day) with a highly-granular bar-size(ex: 1 min) will lead to significantly larger output
+  CSV file, which would be resource intensive for the program and also much harder to comprehend in any
+  spreadsheet viewer. A better option would be to distribute your extraction across a date-range by using
   start-date option.
-- When using any external CSV file as input, user must ensure that the file has a column in of 
+- When using any external CSV file as input, user must ensure that the file has a column in of
   the following values "ecode / e_code / code / ticker / ticker_id" where ticker IDs are stored
   (case-insensitive).
 
@@ -235,7 +232,7 @@ It is recommended that users attach screenshot of the problem and also provide i
 
 > 💻 Contribute to code:
 > - Developers are recommended to fork this Github repository and code new features in their in your
-repository.
+    repository.
 > - Create a new branch by the name of the feature you are developing.
 > - Once changes are done, commit them with proper messages.
 > - Push the original branch back to origin and create a pull request.
@@ -243,7 +240,7 @@ repository.
 
 > 📖 Contibuting to documentation:
 > - If you spot a problem with the project documentation and wish to report it, please follow the steps
-mentioned under Raise a bug section.
+    mentioned under Raise a bug section.
 > - If you want to update the documentation yourself:
 >> - Fork the dev branch and make your changes.
 >> - Publish your changes(with proper commit messages) and create a pull request back into the dev branch.
@@ -251,9 +248,11 @@ mentioned under Raise a bug section.
 ---
 
 ### Contact information:
-> Project Owner: **Aman Oberoi**
->> Developers:
->>> - **Mandeep Singh**
+> Project Owner:
+>> - **[Aman Oberoi](mailto:aman.oberoi@k2qcapital.com?subject=[Regarding TWS-Equities])**
+
+> Developers:
+>> - **[Mandeep Singh](mailto:mandeep@amakaan.com?subject=[Regarding TWS-Equities])**
 
 ---
 

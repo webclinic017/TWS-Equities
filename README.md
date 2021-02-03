@@ -252,7 +252,7 @@ It is recommended that users attach screenshot of the problem and also provide i
 >> - **[Aman Oberoi](mailto:aman.oberoi@k2qcapital.com)**
 
 > Developers:
->> - **[Mandeep Singh](mailto:mandeep@amakaan.com?subject=Regarding TWS-Equities)**
+>> - **[Mandeep Singh](mailto:mandeep@amakaan.com?subject=Regarding%20TWS-Equities)**
 
 ---
 

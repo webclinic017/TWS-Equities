@@ -38,9 +38,8 @@ _WHAT_TO_SHOW = dict(name='--what-to-show', flag='-w', type=str, default='TRADES
                      choices=['TRADES'],  # 'MIDPOINT', 'BID', 'ASK'],
                      help='The type of data to retrieve, only TRADE data is supported currently.')
 
-_USE_RTH = dict(name='--use-rth', flag='-u', type=int, default=1, dest='use_rth', choices=[1],
-                help='Whether(1) or not(0) to retrieve data generated only within Regular Trading Hours(RTH)'
-                     ', currently only 1 is supported.')
+_USE_RTH = dict(name='--use-rth', flag='-u', type=int, default=0, dest='use_rth', choices=[0, 1],
+                help='Whether(1) or not(0) to retrieve data generated only within Regular Trading Hours(RTH)')
 
 
 # options built for CSV maker

@@ -77,7 +77,6 @@ def get_logger(name, debug=False):
         for logger in LOG_CONFIG['loggers']:
             LOG_CONFIG['loggers'][logger]['level'] = level
 
-        # LOG_CONFIG['handlers']['file']['filename'] = get_log_file()
         dictConfig(LOG_CONFIG)
 
     logger = getLogger(name)
@@ -86,7 +85,7 @@ def get_logger(name, debug=False):
     if debug:
         formatter = Formatter(LOG_CONFIG['formatters']['file']['format'])
         file_name = get_log_file()
-        handler = TimedRotatingFileHandler(file_name, when='M', interval=10, backupCount=10, delay=True)
+        handler = TimedRotatingFileHandler(file_name, when='H', interval=3, backupCount=5, delay=True)
         handler.setLevel(LOG_CONFIG['loggers'][name]['level'])
         handler.setFormatter(formatter)
         logger.addHandler(handler)

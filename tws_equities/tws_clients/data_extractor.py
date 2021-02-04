@@ -199,8 +199,14 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
         bar = {'time_stamp': bar.date, 'open': bar.open, 'high': bar.high, 'low': bar.low,
                'close': bar.close, 'volume': bar.volume, 'average': bar.average,
                'count': bar.barCount, 'session': session}
-        if bar not in self.data[id]['bar_data']:
-            self.data[id]['bar_data'].append(bar)
+        time_stamp = bar['time_stamp']
+        date, time = time_stamp.split()
+        year, month, day = date[:4], date[4:6], date[6:]
+        hour, minute, second = map(int, time.split(':'))
+        if not((hour == 11 and minute > 30) or (hour == 12 and minute < 30)):  # fixme: temporary hack
+            if bar not in self.data[id]['bar_data']:
+                bar['time_stamp'] = f'{year}-{month}-{day} {time}'  # TODO: test this
+                self.data[id]['bar_data'].append(bar)
         self.logger.debug(f'Ticker ID: {id} | Bar-data: {bar}')
 
     def historicalDataEnd(self, id, start, end):

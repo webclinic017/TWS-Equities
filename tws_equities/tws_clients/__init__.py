@@ -92,7 +92,7 @@ def _prep_for_extraction(tickers, end_date, end_time):
 
 
 def extractor(tickers, end_date, end_time='15:01:00', duration='1 D', bar_size='1 min', what_to_show='TRADES',
-              use_rth=1, date_format=1, keep_upto_date=False, chart_options=()):
+              use_rth=0, date_format=1, keep_upto_date=False, chart_options=()):
     client = HistoricalDataExtractor(end_date=end_date, end_time=end_time, duration=duration,
                                      bar_size=bar_size, what_to_show=what_to_show, use_rth=use_rth,
                                      date_format=date_format, keep_upto_date=keep_upto_date,
@@ -103,6 +103,7 @@ def extractor(tickers, end_date, end_time='15:01:00', duration='1 D', bar_size='
 
 def _run_extractor(batches, end_date, end_time, duration, bar_size, what_to_show, use_rth, date_format,
                    keep_upto_date, chart_options, cache_success, cache_failure, bar_title=None):
+    # TODO: return tickers instead of files
     if bar_title is not None:
         _BAR_CONFIG['title'] = bar_title
 
@@ -114,8 +115,8 @@ def _run_extractor(batches, end_date, end_time, duration, bar_size, what_to_show
             temp = extractor(batch, end_date, end_time, duration, bar_size, what_to_show,
                              use_rth, date_format, keep_upto_date, chart_options)
             data.update(temp)
-            _time_to_cache = (i+1 == total) or ((i > 0) and (i % _CACHE_THRESHOLD == 0))
-            if _time_to_cache:
+            time_to_cache = (i+1 == total) or ((i > 0) and (i % _CACHE_THRESHOLD == 0))
+            if time_to_cache:
                 if bool(data):
                     _cache_data(data, cache_success, cache_failure)
                     logger.debug(f'Cached data for batch: {i+1}')
@@ -147,7 +148,7 @@ def _sanity_check(tickers, success_files, success_directory, failure_files, fail
 
 
 def extract_historical_data(tickers=None, end_date=None, end_time=None, duration='1 D',
-                            bar_size='1 min', what_to_show='TRADES', use_rth=1, date_format=1,
+                            bar_size='1 min', what_to_show='TRADES', use_rth=0, date_format=1,
                             keep_upto_date=False, chart_options=(), batch_size=_BATCH_SIZE,
                             max_attempts=3, run_counter=1, verbose=False):
     """
@@ -158,7 +159,7 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
         :param duration: the amount of time to go back from end_date_time (ex: '1 D')
         :param bar_size: valid bar size or granularity of data (ex: '1 min')
         :param what_to_show: the type of data to retrieve (ex: 'TRADES')
-        :param use_rth: 1 means retrieve data withing regular trading hours, else 0
+        :param use_rth: 0 means retrieve data withing regular trading hours, else 0
         :param date_format: format for bar data, 1 means yyyyMMdd, 0 means epoch time
         :param keep_upto_date: setting to True will continue to return unfinished bar data
         :param chart_options: to be documented
@@ -168,11 +169,13 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
         :param verbose: set to True to display messages on console
     """
     logger.info(f'Running extractor, attempt: {run_counter} | max attempts: {max_attempts}')
+    # let the user know that data extraction has been initiated
     if run_counter == 1:
         _date_formatted = f'{end_date[:4]}/{end_date[4:6]}/{end_date[6:]}'
         message = f'{"-" * 30} Data Extraction: {_date_formatted} {"-" * 30}'
         write_to_console(message, verbose=True)
 
+    # additional info, if user asks for it
     message = f'Setting things up for data-extraction...'
     write_to_console(message, indent=2, verbose=verbose)
     tickers, cache_success, cache_failure = _prep_for_extraction(tickers, end_date, end_time)
@@ -186,6 +189,7 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
     write_to_console(f'Total Batches: {len(batches)}', indent=4, verbose=verbose, pointer='->')
     write_to_console(f'Batch Size: {batch_size}', indent=4, verbose=verbose, pointer='->')
 
+    # core processing section
     bar_title = f'=> Attempt: {run_counter}'
     message = 'Batch-wise extraction in progress, this can take some time. Please be patient...'
     write_to_console(message, indent=2, verbose=verbose)
@@ -194,13 +198,14 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
                                                   chart_options, cache_success, cache_failure,
                                                   bar_title=bar_title)
 
-    # feedback loop, process failed tickers until we hit the max attempt threshold
-    if bool(failure_files):
-        run_counter += 1
+    run_counter += 1
+    # feedback loop, process failed or missing tickers until we hit the max attempt threshold
+    if tickers != list(map(_get_ticker_id, success_files)):
         if run_counter <= max_attempts:
-            failure_tickers = list(map(_get_ticker_id, failure_files))
+            # TODO: optimize
+            unprocessed_tickers = set(tickers).difference(map(_get_ticker_id, success_files))
             batch_size = 10
-            extract_historical_data(tickers=failure_tickers, end_date=end_date, end_time=end_time,
+            extract_historical_data(tickers=unprocessed_tickers, end_date=end_date, end_time=end_time,
                                     duration=duration, bar_size=bar_size, what_to_show=what_to_show,
                                     use_rth=use_rth, date_format=date_format, keep_upto_date=keep_upto_date,
                                     chart_options=chart_options, batch_size=batch_size,

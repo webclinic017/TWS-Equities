@@ -1,6 +1,6 @@
 certifi==2020.12.5
 chardet==4.0.0
-ibapi @ file:///Users/mandeepsingh/dev/K2Q/tools/twsapi_macunix.976.01/IBJts/source/pythonclient/dist/ibapi-9.76.1-py3-none-any.whl
+ibapi @ file:///Users/mandeepsingh/dev/k2q/ib_api/twsapi_macunix.976.01/IBJts/source/pythonclient/dist/ibapi-9.76.1-py3-none-any.whl
 idna==2.10
 numpy==1.19.4
 pandas==1.1.5
@@ -10,5 +10,4 @@ requests==2.25.1
 six==1.15.0
 urllib3==1.26.2
 alive_progress==1.6.1
-pytest~=6.2.2
-ibapi~=9.76.1
+pytest==6.2.2

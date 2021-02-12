@@ -14,6 +14,7 @@ from tws_equities import RED_CROSS as _RED_CROSS
 
 # load user input
 user_args = parse_user_args()
+print(f'UA: {user_args}')
 
 # extract command and remove the key
 # command is only to be used at the top-level, to trigger underlying functionality

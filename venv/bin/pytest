@@ -1,4 +1,4 @@
-#!/Users/mandeepsingh/dev/K2Q/projects/TWS-Equities/venv/bin/python
+#!/Users/mandeepsingh/dev/k2q/projects/TWS-Equities/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

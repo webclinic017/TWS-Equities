@@ -11,12 +11,10 @@ from tws_equities.helpers import create_stock
 from tws_equities.helpers import make_dirs
 from logging import getLogger
 from os import name as os_name
-from itertools import chain
 import signal
 
 
 OS_IS_UNIX = os_name == 'posix'
-flatten = chain.from_iterable
 
 
 class HistoricalDataExtractor(TWSWrapper, TWSClient):
@@ -188,21 +186,19 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
             :param ticker: represents ticker ID
             :param bar: a bar object that contains OHLCV data
         """
-        # extracting hour from date, format: '20210101 09:00:00'
         self.logger.info(f'Bar-data received for ticker: {ticker}')
-        session = 1 if int(bar.date.split(' ')[-1].split(':')[0]) < 12 else 2
-        bar = {'time_stamp': bar.date, 'open': bar.open, 'high': bar.high, 'low': bar.low,
-               'close': bar.close, 'volume': bar.volume, 'average': bar.average,
-               'count': bar.barCount, 'session': session}
-        time_stamp = bar['time_stamp']
+        time_stamp = bar.date
         date, time = time_stamp.split()
         year, month, day = date[:4], date[4:6], date[6:]
         hour, minute, second = map(int, time.split(':'))
-        if 9 <= hour <= 15:  # TODO: setup a user option
-            if not((hour == 11 and minute > 30) or (hour == 12 and minute < 30)):  # fixme: temporary hack
-                if bar not in self.data[ticker]['bar_data']:
-                    bar['time_stamp'] = f'{year}-{month}-{day} {time}'  # TODO: test this
-                    self.data[ticker]['bar_data'].append(bar)
+        time_stamp = f'{year}-{month}-{day} {time}'
+        session = 1 if hour < 12 else 2
+        bar = {'time_stamp': time_stamp, 'open': bar.open, 'high': bar.high, 'low': bar.low,
+               'close': bar.close, 'volume': bar.volume, 'average': bar.average,
+               'count': bar.barCount, 'session': session}
+        if not((hour == 11 and minute > 30) or (hour == 12 and minute < 30)):  # fixme: temporary hack
+            if bar not in self.data[ticker]['bar_data']:
+                self.data[ticker]['bar_data'].append(bar)
         self.logger.debug(f'Ticker ID: {ticker} | Bar-data: {bar}')
 
     def historicalDataEnd(self, ticker, start, end):
@@ -279,6 +275,6 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
 if __name__ == '__main__':
     import json
     target_tickers = [1301]
-    extractor = HistoricalDataExtractor(end_date='20210212', end_time='09:01:00')
+    extractor = HistoricalDataExtractor(end_date='20210210', end_time='09:01:00')
     extractor.extract_historical_data(target_tickers)
     print(json.dumps(extractor.data, indent=1, sort_keys=True))

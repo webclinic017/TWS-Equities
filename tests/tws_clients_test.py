@@ -19,10 +19,10 @@ import pytest
 
     Here's how you can trigger these tests:
         - Simple run: Trigger all tests
-            - pytest tests/data_extractor_test.py
+            - pytest tests/tws_clients_tests.py
         - Parameterized Run: Trigger specific tests
-            - pytest tests/data_extractor_test.py -m positive
-            - pytest tests/data_extractor_test.py -m negative
+            - pytest tests/tws_clients_tests.py -m positive
+            - pytest tests/tws_clients_tests.py -m negative
 
     NOTE:
         - Tests are marked as positive and negative inside the module.

@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
-import pytest
 from datetime import datetime as dt
+import json
+from os import listdir
+from os.path import dirname
+from os.path import join
 from tws_equities.tws_clients import extractor
+from tws_equities.tws_clients import extract_historical_data
+import pytest
 
 
 """
@@ -23,17 +28,16 @@ from tws_equities.tws_clients import extractor
         - Tests are marked as positive and negative inside the module.
         - Custom grouping can be done by specifying new groups inside "pytest.ini".
 """
+# TODO: include tests for bar timestamps
 
-
-postive_test_tickers = [1301, 5386, 7203, 8729]
+_PROJECT_ROOT = dirname(dirname(__file__))
+_HISTORICAL_DATA = join(_PROJECT_ROOT, 'historical_data')
+positive_test_tickers = [1301, 5386, 7203]
 negative_test_tickers = [1743, 3437, 4628, 1234]
 
 date_format = r'%Y%m%d'
 end_date = dt.today().date().strftime(date_format)  # current date
-end_time = '15:01:00'  # after market close
-
-positive_data = extractor(postive_test_tickers, end_date, end_time=end_time)
-negative_data = extractor(negative_test_tickers, end_date, end_time=end_time)
+end_time = '09:01:00'  # after market close
 
 
 def validate_bar_data(data, ticker):
@@ -79,7 +83,7 @@ def validate_meta_data(data, ticker):
             assert sorted(error.keys()) == error_keys, 'Invalid error keys.'
 
 
-def validate_positive_data(input_tickers, extracted_data):
+def validate_data_positive(input_tickers, extracted_data):
     assert isinstance(extracted_data, dict), 'Extracted data is not a dictionary.'
     assert all(ticker in input_tickers for ticker in extracted_data.keys()), 'Extracted data does not ' \
                                                                              'contain all the tickers.'
@@ -91,7 +95,7 @@ def validate_positive_data(input_tickers, extracted_data):
         validate_bar_data(bar_data, ticker)
 
 
-def validate_negative_data(input_tickers, extracted_data):
+def validate_data_negative(input_tickers, extracted_data):
     assert isinstance(extracted_data, dict), 'Extracted data is not a dictionary.'
     assert all(ticker in input_tickers for ticker in extracted_data.keys()), 'Extracted data does not ' \
                                                                              'contain all the tickers.'
@@ -103,11 +107,34 @@ def validate_negative_data(input_tickers, extracted_data):
         validate_meta_data(meta_data, ticker)
 
 
+def validate_data_caching_positive(input_tickers):
+    target_path = join(_HISTORICAL_DATA, end_date, end_time.replace(':', '_'), '.success')
+    cached_files = listdir(target_path)
+    cached_ticker_ids = list(map(lambda x: int(x.split('.')[0]), cached_files))
+    assert all(x in input_tickers for x in cached_ticker_ids), 'Not all tickers have been cached properly.'
+    for ticker in cached_ticker_ids:
+        file_path = join(target_path, f'{ticker}.json')
+        with open(file_path, 'r') as f:
+            data = json.loads(f.read())
+            validate_bar_data(data['bar_data'], ticker)
+            validate_meta_data(data['meta_data'], ticker)
+
+
 @pytest.mark.positive
 def test_extractor_positive():
-    validate_positive_data(postive_test_tickers, positive_data)
+    positive_data = extractor(positive_test_tickers, end_date, end_time=end_time)
+    validate_data_positive(positive_test_tickers, positive_data)
 
 
 @pytest.mark.negative
 def test_extractor_negative():
-    validate_negative_data(negative_test_tickers, negative_data)
+    negative_data = extractor(negative_test_tickers, end_date, end_time=end_time)
+    validate_data_negative(negative_test_tickers, negative_data)
+
+
+@pytest.mark.positive
+def test_data_caching_positive():
+    extract_historical_data(tickers=positive_test_tickers,
+                            end_date=end_date,
+                            end_time=end_time)
+    validate_data_caching_positive(positive_test_tickers)

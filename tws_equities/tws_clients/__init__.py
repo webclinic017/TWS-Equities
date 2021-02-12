@@ -215,8 +215,8 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
 
 if __name__ == '__main__':
     # NOTE: View results at: TWS-Equities/historical_data/<end_date>/.success/<ticker_id>.json
-    tickers = [1301]
-    extract_historical_data(tickers,
+    target_tickers = [1301]
+    extract_historical_data(target_tickers,
                             end_date='20210101',
                             end_time='15:01:00',
                             duration='1 D',

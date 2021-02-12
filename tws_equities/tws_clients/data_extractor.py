@@ -9,12 +9,7 @@ from tws_equities.tws_clients import TWSWrapper
 from tws_equities.tws_clients import TWSClient
 from tws_equities.helpers import create_stock
 from tws_equities.helpers import make_dirs
-from json import dumps
 from logging import getLogger
-# from os.path import dirname
-# from os.path import isfile
-# from os.path import join
-# from os import walk
 from os import name as os_name
 from itertools import chain
 import signal
@@ -27,13 +22,13 @@ flatten = chain.from_iterable
 class HistoricalDataExtractor(TWSWrapper, TWSClient):
 
     def __init__(self, end_date='20210101', end_time='15:01:00', duration='1 D', bar_size='1 min',
-                 what_to_show='TRADES', use_rth=1, date_format=1, keep_upto_date=False, chart_options=(),
+                 what_to_show='TRADES', use_rth=0, date_format=1, keep_upto_date=False, chart_options=(),
                  logger=None, timeout=3, max_attempts=3):
         TWSWrapper.__init__(self)
         TWSClient.__init__(self, wrapper=self)
         self.ticker = None
         self._target_tickers = []
-        self._proccesed_tickers = []
+        self._processed_tickers = []
         self.is_connected = False
         self.directory_maker = make_dirs
         # TODO: implement broken connection handler
@@ -131,15 +126,15 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
         """
             Establishes a connection to TWS API
             Sets 'is_connected' to True after a successful connection
-            @param host: IP Adrress of the machine hosting the TWS app
-            @param port: Port number on which TWS is listenign to new connections
+            @param host: IP Address of the machine hosting the TWS app
+            @param port: Port number on which TWS is listening to new connections
             @param client_id: Client ID using which connection will be made
         """
         self.logger.info('Trying to connect to TWS API server')
         if not self.is_connected:
             super().connect(host, port, client_id)
             self.is_connected = self.isConnected()
-            self.logger.debug(f'COnnection status: {self.is_connected}')
+            self.logger.debug(f'Connection status: {self.is_connected}')
             self.run()
 
     def disconnect(self):
@@ -170,7 +165,7 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
             self._reset_attr(_target_tickers=tickers, data={})
         if not self.is_connected:
             self.connect()
-        unprocessed_tickers = list(set(self._target_tickers).difference(self._proccesed_tickers))
+        unprocessed_tickers = list(set(self._target_tickers).difference(self._processed_tickers))
         if bool(unprocessed_tickers):
             self.logger.info(f'Found unprocessed tickers, proceeding with data extraction')
             _target_ticker = unprocessed_tickers[0]
@@ -181,20 +176,20 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
             if ticker_is_not_processed:
                 self._request_historical_data(_target_ticker)
             else:
-                self._proccesed_tickers.append(_target_ticker)
+                self._processed_tickers.append(_target_ticker)
                 self.logger.debug(f'Ticker was processed, completion marked')
                 self.extract_historical_data()
         else:
             self.disconnect()
 
-    def historicalData(self, id, bar):
+    def historicalData(self, ticker, bar):
         """
             This method is receives data from TWS API, invoked automatically after "reqHistoricalData".
-            :param id: respresents ticker ID
+            :param ticker: represents ticker ID
             :param bar: a bar object that contains OHLCV data
         """
         # extracting hour from date, format: '20210101 09:00:00'
-        self.logger.info(f'Bar-data received for ticker: {id}')
+        self.logger.info(f'Bar-data received for ticker: {ticker}')
         session = 1 if int(bar.date.split(' ')[-1].split(':')[0]) < 12 else 2
         bar = {'time_stamp': bar.date, 'open': bar.open, 'high': bar.high, 'low': bar.low,
                'close': bar.close, 'volume': bar.volume, 'average': bar.average,
@@ -203,39 +198,40 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
         date, time = time_stamp.split()
         year, month, day = date[:4], date[4:6], date[6:]
         hour, minute, second = map(int, time.split(':'))
-        if not((hour == 11 and minute > 30) or (hour == 12 and minute < 30)):  # fixme: temporary hack
-            if bar not in self.data[id]['bar_data']:
-                bar['time_stamp'] = f'{year}-{month}-{day} {time}'  # TODO: test this
-                self.data[id]['bar_data'].append(bar)
-        self.logger.debug(f'Ticker ID: {id} | Bar-data: {bar}')
+        if 9 <= hour <= 15:  # TODO: setup a user option
+            if not((hour == 11 and minute > 30) or (hour == 12 and minute < 30)):  # fixme: temporary hack
+                if bar not in self.data[ticker]['bar_data']:
+                    bar['time_stamp'] = f'{year}-{month}-{day} {time}'  # TODO: test this
+                    self.data[ticker]['bar_data'].append(bar)
+        self.logger.debug(f'Ticker ID: {ticker} | Bar-data: {bar}')
 
-    def historicalDataEnd(self, id, start, end):
+    def historicalDataEnd(self, ticker, start, end):
         """
             This method is called automatically after all the bars have been generated by "historicalData".
             Marks the completion of historical data generation for a given ticker.
-            :param id: ticker ID
+            :param ticker: ticker ID
             :param start: starting timestamp
             :param end: ending timestamp
         """
-        self.logger.info(f'Data extraction completed for ticker: {id}')
-        self.data[id]['meta_data']['start'] = start
-        self.data[id]['meta_data']['end'] = end
-        self.data[id]['meta_data']['status'] = True
-        self.data[id]['meta_data']['total_bars'] = len(self.data[id]['bar_data'])
-        self._proccesed_tickers.append(id)
+        self.logger.info(f'Data extraction completed for ticker: {ticker}')
+        self.data[ticker]['meta_data']['start'] = start
+        self.data[ticker]['meta_data']['end'] = end
+        self.data[ticker]['meta_data']['status'] = True
+        self.data[ticker]['meta_data']['total_bars'] = len(self.data[ticker]['bar_data'])
+        self._processed_tickers.append(ticker)
         self.extract_historical_data()
 
-    def error(self, id, code, message):
+    def error(self, ticker, code, message):
         """
             Error handler for all API calls, invoked directly by EClient methods
-            :param id: error ID (-1 means no informational message, not true error)
+            :param ticker: error ID (-1 means no informational message, not true error)
             :param code: error code, defines error type
             :param message: error message, information about error
         """
         # -1 is not a true error, but only an informational message
         # initial call to run invokes this method with error ID = -1
         # print(f'Error: ID: {id} | Code: {code} | String: {message}')
-        if id == -1:
+        if ticker == -1:
             # error code 502 indicates connection failure
             if code == 502:
                 self.logger.error(f'Connection Failure: {message}, Error Code: {code}')
@@ -243,7 +239,7 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
             # error codes 2103, 2105, 2157 indicate broken connection
             if code in [2103, 2105, 2157]:
                 self.logger.error(f'Insecure Connection: {message}, Error code: {code}')
-                raise ConnectionError(f'Detected broken connection, please try re-connecting the webfarms '
+                raise ConnectionError(f'Detected broken connection, please try re-connecting the web-farms '
                                       f'in TWS.')
             # error codes 2104, 2106, 2158 indicate connection is OK
             if code in [2104, 2106, 2158]:
@@ -254,26 +250,26 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
                 self.logger.info(f'Secure connection established to TWS API.')
                 self.handshake_completed = True
         else:
-            self.logger.error(f'{message}: Ticker ID: {id}, Error Code: {code}')
-            meta_data = self.data[id]['meta_data']
+            self.logger.error(f'{message}: Ticker ID: {ticker}, Error Code: {code}')
+            meta_data = self.data[ticker]['meta_data']
             attempts = meta_data['attempts']
             error = {'code': code, 'message': message}
             meta_data['_error_stack'].append(error)
 
             if attempts >= self.max_attempts:
-                self._proccesed_tickers.append(id)
+                self._processed_tickers.append(ticker)
 
             # -1 indicates a timeout
             # 162 indicates that HMDS return no data
             # 322 indicates that API request limit(50) has been breached
             # 504 indicates no connection
             if code in [-1, 322, 504]:
-                self.cancelHistoricalData(id)
-                self.logger.error(f'Canceling: {id} | {code} | {message}')
+                self.cancelHistoricalData(ticker)
+                self.logger.error(f'Canceling: {ticker} | {code} | {message}')
 
         if self.handshake_completed:
             self.logger.debug('Initial handshake completed, initiating data extraction')
-            extraction_is_not_completed = self._target_tickers != self._proccesed_tickers
+            extraction_is_not_completed = self._target_tickers != self._processed_tickers
             if extraction_is_not_completed:
                 self.extract_historical_data()
             else:
@@ -282,7 +278,7 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
 
 if __name__ == '__main__':
     import json
-    tickers = [1301]
-    extractor = HistoricalDataExtractor(end_date='20210120', end_time='09:01:00')
-    extractor.extract_historical_data(tickers)
+    target_tickers = [1301]
+    extractor = HistoricalDataExtractor(end_date='20210212', end_time='09:01:00')
+    extractor.extract_historical_data(target_tickers)
     print(json.dumps(extractor.data, indent=1, sort_keys=True))

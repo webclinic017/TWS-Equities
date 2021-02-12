@@ -8,6 +8,9 @@ from tws_equities.helpers import get_date_range
 from tws_equities.tws_clients import extract_historical_data
 
 
+# TODO: better use verbose and debug options
+
+
 def download(tickers=None, start_date=None, end_date=None, end_time=None,
              duration=None, bar_size=None, what_to_show=None, use_rth=None, verbose=False):
     if start_date is None:

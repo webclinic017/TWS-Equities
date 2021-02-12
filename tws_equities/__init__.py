@@ -8,7 +8,7 @@
     Data is pre-formatted into a JSON object for immediate consumption, an error stack will be provided in
     case of a failure.
 
-    This package also provides a CLI to easily the built-in functionalities, run the follwoing command in
+    This package also provides a CLI to easily the built-in functionalities, run the following command in
     your terminal to view all the options & commands available:
         - python -m tws_equities -h
 """

@@ -1,4 +1,4 @@
-# Pychcharm / Markup / Logs
+# Pychcharm / Markup / Logs / Virtual Environment
 .DS_Store
 .idea/
 *.xml
@@ -6,6 +6,7 @@
 logs/
 historical_data/
 .pytest_cache/
+venv/
 
 
 # Byte-compiled / optimized / DLL files
@@ -24,7 +25,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-#lib/
+lib/
 lib64/
 parts/
 sdist/
@@ -112,13 +113,13 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+ .env
+ .venv
+ env/
+ venv/
+ ENV/
+ env.bak/
+ venv.bak/
 
 # Spyder project settings
 .spyderproject

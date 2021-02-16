@@ -30,7 +30,7 @@ Before users try to interact with the code, they must ensure that following crit
 
 > - Install Python 3.6 or later.
 > - Use Linux or Mac OS machine, code has not yet been tested on Windows machines..
-> - Have some basic knowledge about using Command Line Interfaces(CLIs).
+> - Have some basic knowledge about working with a Command Line Interfaces(CLIs).
 
 Once the above requirements are satisfied, please follow the steps mentioned below to setup the project on your local machine:
 

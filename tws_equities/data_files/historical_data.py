@@ -175,7 +175,7 @@ def create_csv_dump(target_date, end_time='15:01:00', verbose=False):
     target_directory = join(_HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
 
     if not isdir(target_directory):
-        raise NotADirectoryError(f'Could not find a data storage directory for date: {target_date}')
+        raise NotADirectoryError(f'Could not find a data storage directory for date: {target_directory}')
 
     success_directory = join(target_directory, '.success')
     failure_directory = join(target_directory, '.failure')

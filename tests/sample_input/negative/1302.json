@@ -1,0 +1,17 @@
+{
+ "bar_data": [],
+ "meta_data": {
+  "_error_stack": [
+   {
+    "code": 200,
+    "message": "No security definition has been found for the request"
+   }
+  ],
+  "attempts": 1,
+  "ecode": 1302,
+  "end": null,
+  "start": null,
+  "status": false,
+  "total_bars": 0
+ }
+}

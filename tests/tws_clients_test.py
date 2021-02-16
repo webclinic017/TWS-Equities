@@ -8,6 +8,7 @@ from os.path import dirname
 from os.path import join
 from tws_equities.tws_clients import extractor
 from tws_equities.tws_clients import extract_historical_data
+from tws_equities.data_files import create_csv_dump
 import pytest
 
 
@@ -138,3 +139,11 @@ def test_data_caching_positive():
                             end_date=end_date,
                             end_time=end_time)
     validate_data_caching_positive(positive_test_tickers)
+
+
+@pytest.mark.positive
+def test_csv_creation_positive():
+    create_csv_dump(end_date, end_time=end_time)
+    target_directory = join(_HISTORICAL_DATA, end_date, end_time.replace(':', '_'))
+    assert 'success.csv' in listdir(target_directory), f'success.csv was not created at: {target_directory}'
+    # TODO: add more tests for success file

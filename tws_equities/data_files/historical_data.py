@@ -51,8 +51,8 @@ def generate_success_dataframe(target_directory, bar_title=None, verbose=False):
         return int(file_name.split(sep)[-1].split('.')[0])
 
     # create a place holder dataframe
-    expected_columns = ['time_stamp', 'ecode', 'session', 'high', 'low', 'close',
-                        'volume', 'average', 'count']
+    expected_columns = ['time_stamp', 'ecode', 'session', 'open', 'high', 'low',
+                        'close', 'volume', 'average', 'count']
 
     # create temporary directory to store smaller CSV files
     temp_directory = '.temp'

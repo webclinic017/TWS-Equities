@@ -233,7 +233,7 @@ It is recommended that users attach screenshot of the problem and also provide i
 > 💻 Contribute to code:
 > - Developers are recommended to fork this Github repository and code new features in their in your
     repository.
-> - Create a new branch by the name of the feature you are developing.
+> - Create a new branch by the name of the feature you want to develop.
 > - Once changes are done, commit them with proper messages.
 > - Push the original branch back to origin and create a pull request.
 > - Changes will be reviewed and merged after approval from the repository owner.

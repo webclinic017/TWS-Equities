@@ -49,7 +49,7 @@ The project is dependent on a few 3rd-party libraries that include:
 - Project contains a "requirements.txt" file that can be used to setup your new virtual environment, but still IBAPI must be built from scratch and installed in the new environment.
 
 #### **Launch IB's Trader Work Station(TWS):**
-User must launch TWS prior to interacting with the code, this is necessary because IB API will be hosted on your local machine once you're logged into TWS. Code uses default values to connect with the API which can be tweaked from Global API Settings in TWS.
+User must launch Trader Workstation prior to interacting with the code, this is necessary because IB API will be hosted on your local machine once you're logged into TWS. Code uses default values to connect with the API which can be tweaked from Global API Settings in TWS.
 ```
     DEFAULT_HOST = "127.0.0.1"
     DEFAULT_PORT = 7497

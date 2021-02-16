@@ -35,7 +35,7 @@ Before users try to interact with the code, they must ensure that following crit
 Once the above requirements are satisfied, please follow the steps mentioned below to setup the project on your local machine:
 
 #### **Cloning the project:**
-To use this code to extract market data, user first needs have the code cloned to into their local machine. Run the following command to do that:
+Run the following command to clone the project into your local machine:
 > **`git clone https://github.com/sudoMode/TWS-Project.git`**
 
 #### **Virtual Environment:**

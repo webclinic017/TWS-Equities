@@ -19,7 +19,8 @@ from tws_equities.helpers import sep
 from tws_equities.helpers import glob
 from tws_equities.helpers import write_to_console
 
-from tws_equities.helpers import HISTORICAL_DATA_STORAGE as _HISTORICAL_DATA_STORAGE
+from tws_equities.settings import HISTORICAL_DATA_STORAGE as _HISTORICAL_DATA_STORAGE
+from tws_equities.settings import DAILY_METRICS_FILE
 
 
 _RED_CROSS = u'\u274C'
@@ -199,13 +200,14 @@ def _get_marker(ratio, threshold=0.95):
 
 # noinspection PyUnusedLocal
 # TODO: refactor
-def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=None, verbose=False):
+def generate_extraction_metrics_(target_date, end_time='15:01:00', input_tickers=None, verbose=False):
     """
         Generates metrics about success & failure tickers.
         Metrics are saved into a new file called 'metrics.csv'
         :param target_date: date for which metrics are needed
         :param end_time: end time for metrics are to be generated
         :param input_tickers: tickers for which metrics are to be generated
+        :param verbose: display a more detailed output
     """
     logger.info('Generating final extraction metrics')
     _date = f'{target_date[:4]}/{target_date[4:6]}/{target_date[6:]}'
@@ -333,6 +335,201 @@ def generate_extraction_metrics(target_date, end_time='15:01:00', input_tickers=
     logger.debug(f'Metrics saved at: {metrics_file}')
 
 
+def compute_extraction_metrics(success_data, failure_data, input_data):
+    # create aliases for variable names, done only to shorten the code
+    s, f, i = success_data, failure_data, input_data
+
+    # over-all metrics
+    total = i.code.shape[0]
+    extracted = s.ecode.unique().shape[0]
+    failed = f.ecode.unique().shape[0]
+    missed = total - (extracted + failed)
+    extraction_ratio = round(extracted / total, 3)  # TODO: understand this inspection
+
+    # metrics by index
+    # topix
+    topix = i[i.topix == 1]
+    total_topix = topix.code.shape[0]
+    extracted_topix = s[s.ecode.isin(topix.code)].ecode.unique().shape[0]
+    failed_topix = f[f.ecode.isin(topix.code)].ecode.unique().shape[0]
+    missed_topix = total_topix - (extracted_topix + failed_topix)
+    extraction_ratio_topix = round(extracted_topix / total_topix, 3)
+
+    # nikkei 225
+    nikkei_225 = i[i.nikkei225 == 1]
+    total_nikkei225 = nikkei_225.code.shape[0]
+    extracted_nikkei225 = s[s.ecode.isin(nikkei_225.code)].ecode.unique().shape[0]
+    failed_nikkei225 = f[f.ecode.isin(nikkei_225.code)].ecode.unique().shape[0]
+    missed_nikkei225 = total_nikkei225 - (extracted_nikkei225 + failed_nikkei225)
+    extraction_ratio_nikkei225 = round(extracted_nikkei225 / total_nikkei225, 3)
+
+    # jasdaq 20
+    jsadaq_20 = i[i.jasdaq20 == 1]
+    total_jasdaq20 = jsadaq_20.code.shape[0]
+    extracted_jasdaq20 = s[s.ecode.isin(jsadaq_20.code)].ecode.unique().shape[0]
+    failed_jasdaq20 = f[f.ecode.isin(jsadaq_20.code)].ecode.unique().shape[0]
+    missed_jasdaq20 = total_jasdaq20 - (extracted_jasdaq20 + failed_jasdaq20)
+    extraction_ratio_jasdaq20 = round(extracted_jasdaq20 / total_jasdaq20, 3)
+
+    # metrics by section
+    # first section
+    first_section = i[i.section == 'First Section']
+    total_first_section = first_section.code.shape[0]
+    extracted_first_section = s[s.ecode.isin(first_section.code)].ecode.unique().shape[0]
+    failed_first_section = f[f.ecode.isin(first_section.code)].ecode.unique().shape[0]
+    missed_first_section = total_first_section - (extracted_first_section + failed_first_section)
+    extraction_ratio_first_section = round(extracted_first_section / total_first_section, 3)
+
+    # second section
+    second_section = i[i.section == 'Second Section']
+    total_second_section = second_section.code.shape[0]
+    extracted_second_section = s[s.ecode.isin(second_section.code)].ecode.unique().shape[0]
+    failed_second_section = f[f.ecode.isin(second_section.code)].ecode.unique().shape[0]
+    missed_second_section = total_second_section - (extracted_second_section + failed_second_section)
+    extraction_ratio_second_section = round(extracted_second_section / total_second_section, 3)
+
+    # mothers
+    mothers = i[i.section == 'Mothers']
+    total_mothers = mothers.code.shape[0]
+    extracted_mothers = s[s.ecode.isin(mothers.code)].ecode.unique().shape[0]
+    failed_mothers = f[f.ecode.isin(mothers.code)].ecode.unique().shape[0]
+    missed_mothers = total_mothers - (extracted_mothers + failed_mothers)
+    extraction_ratio_mothers = round(extracted_mothers / total_mothers, 3)
+
+    # jasdaq growth
+    jasdaq_growth = i[i.section == 'JASDAQ Growth']
+    total_jasdaq_growth = jasdaq_growth.code.shape[0]
+    extracted_jasdaq_growth = s[s.ecode.isin(jasdaq_growth.code)].ecode.unique().shape[0]
+    failed_jasdaq_growth = f[f.ecode.isin(jasdaq_growth.code)].ecode.unique().shape[0]
+    missed_jasdaq_growth = total_jasdaq_growth - (extracted_jasdaq_growth + failed_jasdaq_growth)
+    extraction_ratio_jasdaq_growth = round(extracted_jasdaq_growth / total_jasdaq_growth, 3)
+
+    # jasdaq standard
+    jasdaq_standard = i[i.section == 'JASDAQ Standard']
+    total_jasdaq_standard = jasdaq_standard.code.shape[0]
+    extracted_jasdaq_standard = s[s.ecode.isin(jasdaq_standard.code)].ecode.unique().shape[0]
+    failed_jasdaq_standard = f[f.ecode.isin(jasdaq_standard.code)].ecode.unique().shape[0]
+    missed_jasdaq_standard = total_jasdaq_standard - (extracted_jasdaq_standard + failed_jasdaq_standard)
+    extraction_ratio_jasdaq_standard = round(extracted_jasdaq_standard / total_jasdaq_standard, 3)
+
+    # market cap > ¥ 10 B
+    mcap_above_10b = i[i.market_cap >= 10e+9]
+    total_mcap_above_10b = mcap_above_10b.code.shape[0]
+    extracted_mcap_above_10b = s[s.ecode.isin(mcap_above_10b.code)].ecode.unique().shape[0]
+    failed_mcap_above_10b = f[f.ecode.isin(mcap_above_10b.code)].ecode.unique().shape[0]
+    missed_mcap_above_10b = total_mcap_above_10b - (extracted_mcap_above_10b + failed_mcap_above_10b)
+    extraction_ratio_mcap_above_10b = round(extracted_mcap_above_10b / total_mcap_above_10b, 3)
+
+    # 3 month's average trading volume * price >= ¥ 85 MM
+    pv_above_85m = i[i.average_trading_volume_3M >= 85e+6]
+    total_pv_above_85m = pv_above_85m.code.shape[0]
+    extracted_pv_above_85m = s[s.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]
+    failed_pv_above_85m = f[f.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]
+    missed_pv_above_85m = total_mcap_above_10b - (extracted_pv_above_85m + failed_pv_above_85m)
+    extraction_ratio_pv_above_85m = round(extracted_pv_above_85m / total_pv_above_85m, 3)
+
+    metrics = dict(
+        total=total,
+        extracted=extracted,
+        failed=failed,
+        missed=missed,
+        extracion_ratio=extraction_ratio,
+        total_topix=total_topix,
+        extracted_topix=extracted_topix,
+        failed_topix=failed_topix,
+        missed_topix=missed_topix,
+        extraction_ratio_topix=extraction_ratio_topix,
+        total_nikkei225=total_nikkei225,
+        extracted_nikkei225=extracted_nikkei225,
+        failed_nikkei225=failed_nikkei225,
+        missed_nikkei225=missed_nikkei225,
+        extraction_ratio_nikkei225=extraction_ratio_nikkei225,
+        total_jasdaq20=total_jasdaq20,
+        extracted_jasdaq20=extracted_jasdaq20,
+        failed_jasdaq20=failed_jasdaq20,
+        missed_jasdaq20=missed_jasdaq20,
+        extraction_ratio_jasdaq20=extraction_ratio_jasdaq20,
+        total_first_section=total_first_section,
+        extracted_first_section=extracted_first_section,
+        failed_first_section=failed_first_section,
+        missed_first_section=missed_first_section,
+        extraction_ratio_first_section=extraction_ratio_first_section,
+        total_second_section=total_second_section,
+        extracted_second_section=extracted_second_section,
+        failed_second_section=failed_second_section,
+        missed_second_section=missed_second_section,
+        extraction_ratio_second_section=extraction_ratio_second_section,
+        total_mothers=total_mothers,
+        extracted_mothers=extracted_mothers,
+        failed_mothers=failed_mothers,
+        missed_mothers=missed_mothers,
+        extraction_ratio_mothers=extraction_ratio_mothers,
+        total_jasdaq_growth=total_jasdaq_growth,
+        extracted_jasdaq_growth=extracted_jasdaq_growth,
+        failed_jasdaq_growth=failed_jasdaq_growth,
+        missed_jasdaq_growth=missed_jasdaq_growth,
+        extraction_ratio_jasdaq_growth=extraction_ratio_jasdaq_growth,
+        total_jasdaq_standard=total_jasdaq_standard,
+        extracted_jasdaq_standard=extracted_jasdaq_standard,
+        failed_jasdaq_standard=failed_jasdaq_standard,
+        missed_jasdaq_standard=missed_jasdaq_standard,
+        extraction_ratio_jasdaq_standard=extraction_ratio_jasdaq_standard,
+        total_mcap_above_10b=total_mcap_above_10b,
+        extracted_mcap_above_10b=extracted_mcap_above_10b,
+        failed_mcap_above_10b=failed_mcap_above_10b,
+        missed_mcap_above_10b=missed_mcap_above_10b,
+        extraction_ratio_mcap_above_10b=extraction_ratio_mcap_above_10b,
+        total_pv_above_85m=total_pv_above_85m,
+        extracted_pv_above_85m=extracted_pv_above_85m,
+        failed_pv_above_85m=failed_pv_above_85m,
+        missed_pv_above_85m=missed_pv_above_85m,
+        extraction_ratio_pv_above_85m=extraction_ratio_pv_above_85m
+    )
+    return metrics
+
+
+def update_daily_extraction_metrics(date, data):
+    # create a dataframe for new metrics
+    new_metrics = pd.DataFrame(data, index=[0])
+    new_metrics['date'] = date
+    final_metrics = new_metrics
+
+    # check for existing metrics
+    if isfile(DAILY_METRICS_FILE):
+        existing_metrics = pd.read_csv(DAILY_METRICS_FILE)
+        if date not in existing_metrics.date.values:
+            final_metrics = existing_metrics.append(new_metrics, ignore_index=True)
+        else:
+            final_metrics = existing_metrics
+
+    # adjust order of column headers, 'date' should come first
+    columns = ['date'] + list(data.keys())
+    metrics = final_metrics.round(decimals=3)[columns]
+
+    # save metrics
+    metrics.to_csv(DAILY_METRICS_FILE, index=False)
+
+
+def metrics_generator(data_location, input_file):
+    # read success, failure & input files
+    success = pd.read_csv(join(data_location, 'success.csv'))
+    failure = pd.read_csv(join(data_location, 'failure.csv'))
+    input_ = pd.read_csv(input_file)
+
+    # filter out relevant input --> active tickers
+    relevant_input = input_[input_.status == 'A']
+
+    # get extraction metrics
+    extraction_metrics = compute_extraction_metrics(success, failure, relevant_input)
+
+    # update metrics
+    extraction_date = success.time_stamp[0].split()[0]
+    update_daily_extraction_metrics(extraction_date, extraction_metrics)
+
+
 if __name__ == '__main__':
-    create_csv_dump('20210121')
+    # create_csv_dump('20210121')
     # generate_extraction_metrics('20210120')
+    data_location = r'/Users/mandeepsingh/dev/k2q/projects/TWS-Equities/historical_data/20210607/15_01_00'
+    input_file = r'/Users/mandeepsingh/dev/k2q/data/input_files/tickers.csv'
+    metrics_generator(data_location, input_file)

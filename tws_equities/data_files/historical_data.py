@@ -19,12 +19,12 @@ from tws_equities.helpers import sep
 from tws_equities.helpers import glob
 from tws_equities.helpers import write_to_console
 
-from tws_equities.settings import HISTORICAL_DATA_STORAGE as _HISTORICAL_DATA_STORAGE
+from tws_equities.settings import HISTORICAL_DATA_STORAGE
 from tws_equities.settings import DAILY_METRICS_FILE
+from tws_equities.settings import GREEN_TICK
+from tws_equities.settings import RED_CROSS
 
 
-_RED_CROSS = u'\u274C'
-_GREEN_TICK = u'\u2705'
 _BAR_CONFIG = {
                     'title': '=> Status∶',
                     'calibrate': 5,
@@ -33,6 +33,10 @@ _BAR_CONFIG = {
                     'bar': 'smooth'
               }
 logger = getLogger(__name__)
+
+
+def _get_marker(ratio, threshold=0.95):
+    return GREEN_TICK if ratio >= threshold else RED_CROSS
 
 
 # TODO: both dataframe generators could be refactored into a generic fucntion.
@@ -176,7 +180,7 @@ def create_csv_dump(target_date, end_time='15:01:00', verbose=False):
     logger.info('Generating final CSV dump')
     _date = f'{target_date[:4]}/{target_date[4:6]}/{target_date[6:]}'
     write_to_console(f'{"-"*30} CSV Conversion: {_date} {"-"*31}', verbose=True)
-    target_directory = join(_HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
+    target_directory = join(HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
 
     if not isdir(target_directory):
         raise NotADirectoryError(f'Could not find a data storage directory for date: {target_directory}')
@@ -195,10 +199,6 @@ def create_csv_dump(target_date, end_time='15:01:00', verbose=False):
         path = join(target_directory, 'failure.csv')
         failure.to_csv(path, index=False)
         logger.debug(f'Failure file saved at: {path}')
-
-
-def _get_marker(ratio, threshold=0.95):
-    return _GREEN_TICK if ratio >= threshold else _RED_CROSS
 
 
 # noinspection PyUnusedLocal
@@ -225,10 +225,10 @@ def generate_extraction_metrics_(target_date, end_time='15:01:00', input_tickers
         'missing_tickers_ratio', 'missing_tickers'
     ]
     metrics = dict(zip(expected_metrics, [0.0]*len(expected_metrics)))
-    target_directory = join(_HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
+    target_directory = join(HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
     if not isdir(target_directory):
         raise NotADirectoryError(f'Data storage directory for {target_date} not found at'
-                                 f'{_HISTORICAL_DATA_STORAGE}')
+                                 f'{HISTORICAL_DATA_STORAGE}')
 
     success_file = join(target_directory, 'success.csv')
     failure_file = join(target_directory, 'failure.csv')

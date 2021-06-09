@@ -10,11 +10,12 @@ from sys import stderr
 from tws_equities import parse_user_args
 from tws_equities import get_logger
 from tws_equities import COMMAND_MAP
-from tws_equities import RED_CROSS as _RED_CROSS
+from tws_equities.settings import RED_CROSS
 
 # load user input
 user_args = parse_user_args()
-
+print(user_args)
+exit()
 # extract command and remove the key
 # command is only to be used at the top-level, to trigger underlying functionality
 command = user_args['command']
@@ -33,11 +34,11 @@ def main():
         target_function(**user_args)
     except KeyboardInterrupt:
         _message = 'Detected keyboard interruption from the user, terminating program....'
-        stderr.write(f'{_RED_CROSS} {_message}\n')
+        stderr.write(f'{RED_CROSS} {_message}\n')
         logger.error(_message)
     except Exception as e:
         _message = f'Program Crashed: {e}'
-        stderr.write(f'{_RED_CROSS} {_message}\n')
+        stderr.write(f'{RED_CROSS} {_message}\n')
         logger.error(_message, exc_info=debug)
         if debug:
             raise e

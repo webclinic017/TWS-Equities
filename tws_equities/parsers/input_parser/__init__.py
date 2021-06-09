@@ -81,6 +81,6 @@ def parse_user_args(command_line=None):
 
 
 if __name__ == '__main__':
-    # specify test arguments in list -> (ex: ['run', 'tickers', '-l', '1', '2'])
+    # specify test arguments in a list -> (ex: ['run', 'tickers', '-l', '1', '2'])
     command_line = None
     print(f'User Args: {parse_user_args(command_line=command_line)}')

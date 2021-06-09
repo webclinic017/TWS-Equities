@@ -18,7 +18,7 @@ _URL_ACTION = TICKER_ACTIONS['url']
 # options built for downloader
 _START_DATE = dict(name='--start-date', flag='-sd', type=INPUT_TYPES['date'], default=None,
                    dest='start_date', help='Start date for data extraction, default is None.'
-                                         '(Expected format: "YYYYMMDD")')
+                                           '(Expected format: "YYYYMMDD")')
 
 _END_DATE = dict(name='--end-date', flag='-ed', type=INPUT_TYPES['date'], default=_CURRENT_DATE,
                  dest='end_date', help='End date for data extraction, default is current date.'

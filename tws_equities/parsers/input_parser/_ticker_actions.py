@@ -20,10 +20,8 @@ class _FileLoader(Action):
             values = PATH_TO_DEFAULT_TICKERS
         # TODO: find a better way for setting test tickers
         if values == 'test':
-            tickers = TEST_TICKERS
-        else:
-            tickers = get_tickers_from_user_file(values)
-        setattr(namespace, self.dest, tickers)
+            values = TEST_TICKERS
+        setattr(namespace, self.dest, values)
 
 
 class _URLLoader(Action):

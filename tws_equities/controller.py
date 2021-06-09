@@ -5,8 +5,10 @@
 from tws_equities.data_files import create_csv_dump
 # from tws_equities.data_files import generate_extraction_metrics
 from tws_equities.data_files import metrics_generator
+from tws_equities.data_files.input_data import get_tickers_from_user_file
 from tws_equities.helpers import get_date_range
 from tws_equities.tws_clients import extract_historical_data
+from os.path import isfile
 
 
 # TODO: use verbose and debug options
@@ -51,8 +53,12 @@ def metrics(tickers=None, start_date=None, end_date=None, end_time='15:01:00', v
 
 def run(tickers=None, start_date=None, end_date=None, end_time=None, duration='1 D',
         bar_size='1 min', what_to_show='TRADES', use_rth=1, verbose=False, debug=False):
+    # TODO: load tickers from URL
+    if isfile(tickers):
+        tickers = get_tickers_from_user_file(tickers)[:5]
     download(tickers=tickers, start_date=start_date, end_date=end_date, end_time=end_time,
              duration=duration, bar_size=bar_size, what_to_show=what_to_show, use_rth=use_rth,
              verbose=verbose)
+    print('returned...')
     convert(start_date=start_date, end_date=end_date, end_time=end_time)
     metrics(tickers=tickers, start_date=start_date, end_date=end_date, end_time=end_time)

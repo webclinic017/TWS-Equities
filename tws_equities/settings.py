@@ -11,7 +11,7 @@ from os.path import join
 from pathlib import Path
 
 
-# set to true when trying to debug the application
+# common variables
 DEBUG = False
 
 # project related directories/files

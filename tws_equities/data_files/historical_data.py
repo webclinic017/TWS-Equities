@@ -39,11 +39,14 @@ logger = getLogger(__name__)
 # fixme: account for empty dataframes
 def generate_success_dataframe(target_directory, bar_title=None, verbose=False):
     """
-        Creates a pandas data fame from JSON files present at the given failure location.
+        Creates a pandas datafame from JSON files present at target_directory.
         Assumes that all these JSON files have valid bar data.
-        :param target_directory: location to read JSON files from
-        :param bar_title: message to show infron of progress bar
-        :param verbose: set to true to see info messages on console
+
+        Parameters:
+        -----------
+        target_directory(str): location to read JSON files from
+        bar_title(str): message to show infront of the progress bar
+        verbose(bool): set to true to see info messages on console
     """
     if bar_title is not None:
         _BAR_CONFIG['title'] = bar_title
@@ -488,7 +491,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     return metrics
 
 
-def update_daily_extraction_metrics(date, data):
+def update_metrics_sheet(date, data):
     # create a dataframe for new metrics
     new_metrics = pd.DataFrame(data, index=[0])
     new_metrics['date'] = date
@@ -510,21 +513,53 @@ def update_daily_extraction_metrics(date, data):
     metrics.to_csv(DAILY_METRICS_FILE, index=False)
 
 
+def generate_daily_extraction_status_sheet(data, input_, location, date):
+    # creating aliases, to shorten the code
+    extracted_tickers = data.ecode.unique()
+
+    def status_provider(row):
+        return 'N/A' if row.status == 'D' else (
+            True if row.code in extracted_tickers else False)
+
+    input_['extraction_status'] = input_.apply(status_provider, axis=1)
+    status_file = join(location, f'status_{date}.csv')
+    input_.to_csv(status_file, index=False)
+
+
 def metrics_generator(data_location, input_file):
-    # read success, failure & input files
-    success = pd.read_csv(join(data_location, 'success.csv'))
-    failure = pd.read_csv(join(data_location, 'failure.csv'))
-    input_ = pd.read_csv(input_file)
+    """
+        Generate extraction metrics for daily downloaded data
+        Writes data to two new files:
+        - metrics.csv: day-wise metrics (success, failed, missed v/s total stocks)
+        - status.csv: extraction status for each input ticker for a specific day
 
-    # filter out relevant input --> active tickers
-    relevant_input = input_[input_.status == 'A']
+        - Parameters:
+        -------------
+        - data_location(str): location where downloaded data is kept
+        - input_file(str): full path to input file
+    """
+    logger.info('Generating final extraction metrics')
+    try:
+        # read success, failure & input files
+        success = pd.read_csv(join(data_location, 'success.csv'))
+        failure = pd.read_csv(join(data_location, 'failure.csv'))
+        input_ = pd.read_csv(input_file)
 
-    # get extraction metrics
-    extraction_metrics = compute_extraction_metrics(success, failure, relevant_input)
+        date = success.time_stamp[0].split()[0]
+        write_to_console(f'{"-"*30} Metrics Generation: {date} {"-"*31}', verbose=True)
+        # filter out relevant input --> active tickers
+        relevant_input = input_[input_.status == 'A']
 
-    # update metrics
-    extraction_date = success.time_stamp[0].split()[0]
-    update_daily_extraction_metrics(extraction_date, extraction_metrics)
+        # get extraction metrics
+        extraction_metrics = compute_extraction_metrics(success, failure, relevant_input)
+
+        # generate / update metrics sheet
+        update_metrics_sheet(date, extraction_metrics)
+
+        # generate daily extraction status sheet
+        generate_daily_extraction_status_sheet(success, input_, data_location, date)
+    except Exception as e:
+        logger.critical(f'Metrics generation failed: {e}')
 
 
 if __name__ == '__main__':

@@ -8,3 +8,4 @@ from tws_equities.data_files.input_data import drop_unnamed_columns
 from tws_equities.data_files.input_data import TEST_TICKERS
 from tws_equities.data_files.historical_data import create_csv_dump
 # from tws_equities.data_files.historical_data import generate_extraction_metrics
+from tws_equities.data_files.historical_data import metrics_generator

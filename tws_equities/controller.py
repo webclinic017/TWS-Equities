@@ -4,6 +4,7 @@
 
 from tws_equities.data_files import create_csv_dump
 # from tws_equities.data_files import generate_extraction_metrics
+from tws_equities.data_files import metrics_generator
 from tws_equities.helpers import get_date_range
 from tws_equities.tws_clients import extract_historical_data
 
@@ -42,8 +43,10 @@ def metrics(tickers=None, start_date=None, end_date=None, end_time='15:01:00', v
     if tickers is None:
         pass  # fixme: read cached input
     date_range = get_date_range(start_date, end_date)
-    # for date in date_range:
-    #     generate_extraction_metrics(date, end_time=end_time, input_tickers=tickers)
+    for date in date_range:
+        data_location = ''
+        input_file = ''
+        metrics_generator(data_location, input_file)
 
 
 def run(tickers=None, start_date=None, end_date=None, end_time=None, duration='1 D',

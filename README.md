@@ -29,8 +29,8 @@ TWS Equities Data Downloader is a Python project written around Interactive Brok
 Before users try to interact with the code, they must ensure that following criteria are met:
 
 > - Install Python 3.6 or later.
-> - Use Linux or Mac OS machine, code has not yet been tested on Windows machines.
-> - Have some basic knowledge about working with a Command Line Interfaces(CLIs).
+> - Supported on Linux based systems, code has not yet been tested on Windows machines.
+> - Basic knowledge about working with a Command Line Interfaces(CLIs).
 
 Once the above requirements are satisfied, please follow the steps mentioned below to setup the project on your local machine:
 

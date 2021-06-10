@@ -18,7 +18,7 @@ def download(tickers=None, start_date=None, end_date=None, end_time=None,
              duration=None, bar_size=None, what_to_show=None, use_rth=None, verbose=False):
     input_is_a_file = isfile(tickers)
     if input_is_a_file:
-        tickers = get_tickers_from_user_file(tickers)[:5]
+        tickers = get_tickers_from_user_file(tickers)
     if start_date is None:
         start_date = end_date
     if end_date is None:

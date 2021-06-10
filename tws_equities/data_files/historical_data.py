@@ -37,7 +37,7 @@ _BAR_CONFIG = {
 logger = getLogger(__name__)
 
 
-def _get_marker(ratio, threshold=0.95):
+def _get_marker(ratio, threshold=0.1):
     return GREEN_TICK if ratio >= threshold else RED_CROSS
 
 
@@ -532,7 +532,6 @@ def update_metrics_sheet(date, data):
 
 
 def generate_daily_extraction_status_sheet(data, input_, location, date):
-    # creating aliases, to shorten the code
     extracted_tickers = data.ecode.unique()
 
     def status_provider(row):
@@ -569,16 +568,42 @@ def metrics_generator(date, bar_size, tickers):
         if type(tickers) is list:
             pass  # TODO: simple metrics generation
         else:  # assuming that input is a file path
-            input_ = pd.read_csv(tickers)
-            date = f'{date[:4]}-{date[4:6]}-{date[6:]}'
+            input_ = pd.read_csv(tickers)[:5]
             # filter out relevant input --> active tickers
             relevant_input = input_[input_.status == 'A']
 
             # get extraction metrics
-            extraction_metrics = compute_extraction_metrics(success, failure, relevant_input)
-            # write_to_console()
+            metrics = compute_extraction_metrics(success, failure, relevant_input)
+            write_to_console(f'Over-all Extraction: {_get_marker(metrics["extracion_ratio"])}',
+                             pointer='->', indent=2, verbose=True)
+            write_to_console(f'Topix Extraction: {_get_marker(metrics["extraction_ratio_topix"])}',
+                             pointer='->', indent=2, verbose=True)
+            write_to_console(f'Nikkei 225 Extraction: {_get_marker(metrics["extraction_ratio_nikkei225"])}',
+                             pointer='->', indent=2, verbose=True)
+            write_to_console(f'JASDAQ 20 Extraction: {_get_marker(metrics["extraction_ratio_jasdaq20"])}',
+                             pointer='->', indent=2, verbose=True)
+            write_to_console(f'First Section Extraction: {_get_marker(metrics["extraction_ratio_first_section"])}',
+                             pointer='->', indent=2, verbose=True)
+            write_to_console(f'Second Section Extraction: '
+                             f'{_get_marker(metrics["extraction_ratio_second_section"])}', pointer='->',
+                             indent=2, verbose=True)
+            write_to_console(f'Mothers Extraction: {_get_marker(metrics["extraction_ratio_mothers"])}',
+                             pointer='->', indent=2, verbose=True)
+            write_to_console(f'JASDAQ Growth Extraction: '
+                             f'{_get_marker(metrics["extraction_ratio_jasdaq_growth"])}', pointer='->',
+                             indent=2, verbose=True)
+            write_to_console(f'JASDAQ Standard Extraction: '
+                             f'{_get_marker(metrics["extraction_ratio_jasdaq_standard"])}', pointer='->',
+                             indent=2, verbose=True)
+            write_to_console(f'Market Capital Above ¥10B Extraction: '
+                             f'{_get_marker(metrics["extraction_ratio_mcap_above_10b"])}', pointer='->',
+                             indent=2, verbose=True)
+            write_to_console(f'Price x 3 Month\'s Trading Volume ¥85MM Extraction: '
+                             f'{_get_marker(metrics["extraction_ratio_pv_above_85m"])}', pointer='->',
+                             indent=2, verbose=True)
             # generate / update metrics sheet
-            update_metrics_sheet(date, extraction_metrics)
+            _date = f'{date[:4]}-{date[4:6]}-{date[6:]}'
+            update_metrics_sheet(_date, metrics)
 
             # generate daily extraction status sheet
             generate_daily_extraction_status_sheet(success, input_, data_location, date)

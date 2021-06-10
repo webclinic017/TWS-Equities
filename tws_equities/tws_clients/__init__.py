@@ -59,19 +59,19 @@ def _get_unprocessed_tickers(tickers, success_directory):
     return list(set(tickers).difference(map(_get_ticker_id, get_files_by_type(success_directory))))
 
 
-def _prep_for_extraction(tickers, end_date, end_time):
+def _prep_for_extraction(tickers, end_date, end_time, bar_size):
     """
         # todo: to be added...
     """
     # form data caching directory
-    cache_directory = join(CACHE_DIR, end_date, end_time.replace(':', '_'))
+    cache_directory = join(CACHE_DIR, bar_size.replace(' ', ''), end_date, end_time.replace(':', '_'))
 
     # create cache directory for success
-    cache_success = join(CACHE_DIR, end_date, end_time.replace(':', '_'), 'success')
+    cache_success = join(cache_directory, 'success')
     make_dirs(cache_success)
 
     # create cache directory for failure
-    cache_failure = join(CACHE_DIR, end_date, end_time.replace(':', '_'), 'failure')
+    cache_failure = join(cache_directory, 'failure')
     make_dirs(cache_failure)
 
     # save tickers for later use
@@ -189,7 +189,7 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
     # additional info, if user asks for it
     message = f'Setting things up for data-extraction...'
     write_to_console(message, indent=2, verbose=verbose)
-    tickers, cache_success, cache_failure = _prep_for_extraction(tickers, end_date, end_time)
+    tickers, cache_success, cache_failure = _prep_for_extraction(tickers, end_date, end_time, bar_size)
     write_to_console('Refreshed cache directories...', indent=4, pointer='->', verbose=verbose)
     write_to_console('Removed already cached tickers...', indent=4, pointer='->', verbose=verbose)
     write_to_console('Reset failed tickers...', indent=4, pointer='->', verbose=verbose)

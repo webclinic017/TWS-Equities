@@ -19,7 +19,9 @@ from tws_equities.helpers import sep
 from tws_equities.helpers import glob
 from tws_equities.helpers import write_to_console
 
+from tws_equities.settings import CACHE_DIR
 from tws_equities.settings import HISTORICAL_DATA_STORAGE
+from tws_equities.settings import MONTH_MAP
 from tws_equities.settings import DAILY_METRICS_FILE
 from tws_equities.settings import GREEN_TICK
 from tws_equities.settings import RED_CROSS
@@ -37,6 +39,15 @@ logger = getLogger(__name__)
 
 def _get_marker(ratio, threshold=0.95):
     return GREEN_TICK if ratio >= threshold else RED_CROSS
+
+
+def _setup_storage_directories(date, bar_size='1 min'):
+    y, m = date[:4], date[4:6]
+    storage_dir = join(HISTORICAL_DATA_STORAGE, bar_size.replace(' ', ''),
+                       y, MONTH_MAP[int(m)], date)
+
+    make_dirs(storage_dir)
+    return storage_dir
 
 
 # TODO: both dataframe generators could be refactored into a generic fucntion.
@@ -170,33 +181,34 @@ def generate_failure_dataframe(target_directory, bar_title=None, verbose=False):
     return data
 
 
-def create_csv_dump(target_date, end_time='15:01:00', verbose=False):
+def create_csv_dump(target_date, end_time='15:01:00', bar_size='1 min', verbose=False):
     """
         Creates a CSV file from JSON files for a given date.
         Raise an error if directory for the gven is not present.
-        Created CSV files will be saved at the same location by the name:
+        CSV files to be saved at the historical data storage location:
             'success.csv' & 'failure.csv'
     """
     logger.info('Generating final CSV dump')
+    storage_dir = _setup_storage_directories(target_date, bar_size=bar_size)
     _date = f'{target_date[:4]}/{target_date[4:6]}/{target_date[6:]}'
     write_to_console(f'{"-"*30} CSV Conversion: {_date} {"-"*31}', verbose=True)
-    target_directory = join(HISTORICAL_DATA_STORAGE, target_date, end_time.replace(':', '_'))
+    target_directory = join(CACHE_DIR, bar_size.replace(' ', ''), target_date, end_time.replace(':', '_'))
 
     if not isdir(target_directory):
         raise NotADirectoryError(f'Could not find a data storage directory for date: {target_directory}')
 
-    success_directory = join(target_directory, '.success')
-    failure_directory = join(target_directory, '.failure')
+    success_directory = join(target_directory, 'success')
+    failure_directory = join(target_directory, 'failure')
 
     if isdir(success_directory):
-        path = join(target_directory, 'success.csv')
+        path = join(storage_dir, 'success.csv')
         success = generate_success_dataframe(success_directory, bar_title='Success', verbose=verbose)
         success.to_csv(path, index=False)
         logger.debug(f'Success file saved at: {path}')
 
     if isdir(failure_directory):
+        path = join(storage_dir, 'failure.csv')
         failure = generate_failure_dataframe(failure_directory, bar_title='Failure', verbose=verbose)
-        path = join(target_directory, 'failure.csv')
         failure.to_csv(path, index=False)
         logger.debug(f'Failure file saved at: {path}')
 
@@ -347,7 +359,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted = s.ecode.unique().shape[0]
     failed = f.ecode.unique().shape[0]
     missed = total - (extracted + failed)
-    extraction_ratio = round(extracted / total, 3)  # TODO: understand this inspection
+    extraction_ratio = round(extracted / total, 3) if total > 0 else 0
 
     # metrics by index
     # topix
@@ -356,7 +368,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_topix = s[s.ecode.isin(topix.code)].ecode.unique().shape[0]
     failed_topix = f[f.ecode.isin(topix.code)].ecode.unique().shape[0]
     missed_topix = total_topix - (extracted_topix + failed_topix)
-    extraction_ratio_topix = round(extracted_topix / total_topix, 3)
+    extraction_ratio_topix = round(extracted_topix / total_topix, 3) if total_topix > 0 else 0
 
     # nikkei 225
     nikkei_225 = i[i.nikkei225 == 1]
@@ -364,7 +376,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_nikkei225 = s[s.ecode.isin(nikkei_225.code)].ecode.unique().shape[0]
     failed_nikkei225 = f[f.ecode.isin(nikkei_225.code)].ecode.unique().shape[0]
     missed_nikkei225 = total_nikkei225 - (extracted_nikkei225 + failed_nikkei225)
-    extraction_ratio_nikkei225 = round(extracted_nikkei225 / total_nikkei225, 3)
+    extraction_ratio_nikkei225 = round(extracted_nikkei225 / total_nikkei225, 3) if total_nikkei225 > 0 else 0
 
     # jasdaq 20
     jsadaq_20 = i[i.jasdaq20 == 1]
@@ -372,7 +384,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_jasdaq20 = s[s.ecode.isin(jsadaq_20.code)].ecode.unique().shape[0]
     failed_jasdaq20 = f[f.ecode.isin(jsadaq_20.code)].ecode.unique().shape[0]
     missed_jasdaq20 = total_jasdaq20 - (extracted_jasdaq20 + failed_jasdaq20)
-    extraction_ratio_jasdaq20 = round(extracted_jasdaq20 / total_jasdaq20, 3)
+    extraction_ratio_jasdaq20 = round(extracted_jasdaq20 / total_jasdaq20, 3) if total_jasdaq20 > 0 else 0
 
     # metrics by section
     # first section
@@ -381,7 +393,8 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_first_section = s[s.ecode.isin(first_section.code)].ecode.unique().shape[0]
     failed_first_section = f[f.ecode.isin(first_section.code)].ecode.unique().shape[0]
     missed_first_section = total_first_section - (extracted_first_section + failed_first_section)
-    extraction_ratio_first_section = round(extracted_first_section / total_first_section, 3)
+    extraction_ratio_first_section = round(extracted_first_section / total_first_section,
+                                           3) if total_first_section > 0 else 0
 
     # second section
     second_section = i[i.section == 'Second Section']
@@ -389,7 +402,8 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_second_section = s[s.ecode.isin(second_section.code)].ecode.unique().shape[0]
     failed_second_section = f[f.ecode.isin(second_section.code)].ecode.unique().shape[0]
     missed_second_section = total_second_section - (extracted_second_section + failed_second_section)
-    extraction_ratio_second_section = round(extracted_second_section / total_second_section, 3)
+    extraction_ratio_second_section = round(extracted_second_section / total_second_section,
+                                            3) if total_second_section > 0 else 0
 
     # mothers
     mothers = i[i.section == 'Mothers']
@@ -397,7 +411,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_mothers = s[s.ecode.isin(mothers.code)].ecode.unique().shape[0]
     failed_mothers = f[f.ecode.isin(mothers.code)].ecode.unique().shape[0]
     missed_mothers = total_mothers - (extracted_mothers + failed_mothers)
-    extraction_ratio_mothers = round(extracted_mothers / total_mothers, 3)
+    extraction_ratio_mothers = round(extracted_mothers / total_mothers, 3) if total_mothers > 0 else 0
 
     # jasdaq growth
     jasdaq_growth = i[i.section == 'JASDAQ Growth']
@@ -405,7 +419,8 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_jasdaq_growth = s[s.ecode.isin(jasdaq_growth.code)].ecode.unique().shape[0]
     failed_jasdaq_growth = f[f.ecode.isin(jasdaq_growth.code)].ecode.unique().shape[0]
     missed_jasdaq_growth = total_jasdaq_growth - (extracted_jasdaq_growth + failed_jasdaq_growth)
-    extraction_ratio_jasdaq_growth = round(extracted_jasdaq_growth / total_jasdaq_growth, 3)
+    extraction_ratio_jasdaq_growth = round(extracted_jasdaq_growth / total_jasdaq_growth,
+                                           3) if total_jasdaq_growth > 0 else 0
 
     # jasdaq standard
     jasdaq_standard = i[i.section == 'JASDAQ Standard']
@@ -413,7 +428,8 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_jasdaq_standard = s[s.ecode.isin(jasdaq_standard.code)].ecode.unique().shape[0]
     failed_jasdaq_standard = f[f.ecode.isin(jasdaq_standard.code)].ecode.unique().shape[0]
     missed_jasdaq_standard = total_jasdaq_standard - (extracted_jasdaq_standard + failed_jasdaq_standard)
-    extraction_ratio_jasdaq_standard = round(extracted_jasdaq_standard / total_jasdaq_standard, 3)
+    extraction_ratio_jasdaq_standard = round(extracted_jasdaq_standard / total_jasdaq_standard,
+                                             3) if total_jasdaq_standard > 0 else 0
 
     # market cap > ¥ 10 B
     mcap_above_10b = i[i.market_cap >= 10e+9]
@@ -421,7 +437,8 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_mcap_above_10b = s[s.ecode.isin(mcap_above_10b.code)].ecode.unique().shape[0]
     failed_mcap_above_10b = f[f.ecode.isin(mcap_above_10b.code)].ecode.unique().shape[0]
     missed_mcap_above_10b = total_mcap_above_10b - (extracted_mcap_above_10b + failed_mcap_above_10b)
-    extraction_ratio_mcap_above_10b = round(extracted_mcap_above_10b / total_mcap_above_10b, 3)
+    extraction_ratio_mcap_above_10b = round(extracted_mcap_above_10b / total_mcap_above_10b,
+                                            3) if total_mcap_above_10b > 0 else 0
 
     # 3 month's average trading volume * price >= ¥ 85 MM
     pv_above_85m = i[i.average_trading_volume_3M >= 85e+6]
@@ -429,7 +446,8 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     extracted_pv_above_85m = s[s.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]
     failed_pv_above_85m = f[f.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]
     missed_pv_above_85m = total_mcap_above_10b - (extracted_pv_above_85m + failed_pv_above_85m)
-    extraction_ratio_pv_above_85m = round(extracted_pv_above_85m / total_pv_above_85m, 3)
+    extraction_ratio_pv_above_85m = round(extracted_pv_above_85m / total_pv_above_85m,
+                                          3) if total_pv_above_85m > 0 else 0
 
     metrics = dict(
         total=total,
@@ -526,7 +544,7 @@ def generate_daily_extraction_status_sheet(data, input_, location, date):
     input_.to_csv(status_file, index=False)
 
 
-def metrics_generator(data_location, input_file):
+def metrics_generator(date, bar_size, tickers):
     """
         Generate extraction metrics for daily downloaded data
         Writes data to two new files:
@@ -539,25 +557,31 @@ def metrics_generator(data_location, input_file):
         - input_file(str): full path to input file
     """
     logger.info('Generating final extraction metrics')
+    display_date = f'{date[:4]}/{date[4:6]}/{date[6:]}'
+    write_to_console(f'{"-"*30} Metrics Generation: {display_date} {"-"*31}', verbose=True)
     try:
+        data_location = join(HISTORICAL_DATA_STORAGE, bar_size.replace(' ', ''),
+                             date[:4], MONTH_MAP[int(date[4:6])], date)
         # read success, failure & input files
         success = pd.read_csv(join(data_location, 'success.csv'))
         failure = pd.read_csv(join(data_location, 'failure.csv'))
-        input_ = pd.read_csv(input_file)
 
-        date = success.time_stamp[0].split()[0]
-        write_to_console(f'{"-"*30} Metrics Generation: {date} {"-"*31}', verbose=True)
-        # filter out relevant input --> active tickers
-        relevant_input = input_[input_.status == 'A']
+        if type(tickers) is list:
+            pass  # TODO: simple metrics generation
+        else:  # assuming that input is a file path
+            input_ = pd.read_csv(tickers)
+            date = f'{date[:4]}-{date[4:6]}-{date[6:]}'
+            # filter out relevant input --> active tickers
+            relevant_input = input_[input_.status == 'A']
 
-        # get extraction metrics
-        extraction_metrics = compute_extraction_metrics(success, failure, relevant_input)
+            # get extraction metrics
+            extraction_metrics = compute_extraction_metrics(success, failure, relevant_input)
+            # write_to_console()
+            # generate / update metrics sheet
+            update_metrics_sheet(date, extraction_metrics)
 
-        # generate / update metrics sheet
-        update_metrics_sheet(date, extraction_metrics)
-
-        # generate daily extraction status sheet
-        generate_daily_extraction_status_sheet(success, input_, data_location, date)
+            # generate daily extraction status sheet
+            generate_daily_extraction_status_sheet(success, input_, data_location, date)
     except Exception as e:
         logger.critical(f'Metrics generation failed: {e}')
 

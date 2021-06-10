@@ -214,7 +214,7 @@ def create_csv_dump(target_date, end_time='15:01:00', bar_size='1 min', verbose=
 
 
 # noinspection PyUnusedLocal
-# TODO: refactor
+# TODO: to be deprecated
 def generate_extraction_metrics_(target_date, end_time='15:01:00', input_tickers=None, verbose=False):
     """
         Generates metrics about success & failure tickers.
@@ -568,7 +568,7 @@ def metrics_generator(date, bar_size, tickers):
         if type(tickers) is list:
             pass  # TODO: simple metrics generation
         else:  # assuming that input is a file path
-            input_ = pd.read_csv(tickers)[:5]
+            input_ = pd.read_csv(tickers)
             # filter out relevant input --> active tickers
             relevant_input = input_[input_.status == 'A']
 

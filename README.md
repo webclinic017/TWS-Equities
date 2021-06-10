@@ -13,7 +13,7 @@
 
 Owner: **K2Q Capital Limited**  
 Author: **Mandeep Singh**  
-Updated: **February 16th 2021**  
+Updated: **June 10th 2021**  
 Version: **1.1.0**
 
 ---

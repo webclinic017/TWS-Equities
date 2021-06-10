@@ -31,7 +31,7 @@ __license__ = 'MIT'
 
 # version
 __major__ = 1
-__minor__ = 0
+__minor__ = 1
 __micro__ = 0
 __version__ = f'{__major__}.{__minor__}.{__micro__}'
 

@@ -37,7 +37,7 @@ _BAR_CONFIG = {
 logger = getLogger(__name__)
 
 
-def _get_marker(ratio, threshold=0.1):
+def _get_marker(ratio, threshold=0.95):
     return GREEN_TICK if ratio >= threshold else RED_CROSS
 
 
@@ -350,6 +350,7 @@ def generate_extraction_metrics_(target_date, end_time='15:01:00', input_tickers
     logger.debug(f'Metrics saved at: {metrics_file}')
 
 
+# TODO: get rid of max function from missed calculation
 def compute_extraction_metrics(success_data, failure_data, input_data):
     # create aliases for variable names, done only to shorten the code
     s, f, i = success_data, failure_data, input_data
@@ -358,7 +359,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total = i.code.shape[0]
     extracted = s.ecode.unique().shape[0]
     failed = f.ecode.unique().shape[0]
-    missed = total - (extracted + failed)
+    missed = max(total - (extracted + failed), 0)
     extraction_ratio = round(extracted / total, 3) if total > 0 else 0
 
     # metrics by index
@@ -367,7 +368,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_topix = topix.code.shape[0]
     extracted_topix = s[s.ecode.isin(topix.code)].ecode.unique().shape[0]
     failed_topix = f[f.ecode.isin(topix.code)].ecode.unique().shape[0]
-    missed_topix = total_topix - (extracted_topix + failed_topix)
+    missed_topix = max(total_topix - (extracted_topix + failed_topix), 0)
     extraction_ratio_topix = round(extracted_topix / total_topix, 3) if total_topix > 0 else 0
 
     # nikkei 225
@@ -375,7 +376,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_nikkei225 = nikkei_225.code.shape[0]
     extracted_nikkei225 = s[s.ecode.isin(nikkei_225.code)].ecode.unique().shape[0]
     failed_nikkei225 = f[f.ecode.isin(nikkei_225.code)].ecode.unique().shape[0]
-    missed_nikkei225 = total_nikkei225 - (extracted_nikkei225 + failed_nikkei225)
+    missed_nikkei225 = max(total_nikkei225 - (extracted_nikkei225 + failed_nikkei225), 0)
     extraction_ratio_nikkei225 = round(extracted_nikkei225 / total_nikkei225, 3) if total_nikkei225 > 0 else 0
 
     # jasdaq 20
@@ -383,7 +384,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_jasdaq20 = jsadaq_20.code.shape[0]
     extracted_jasdaq20 = s[s.ecode.isin(jsadaq_20.code)].ecode.unique().shape[0]
     failed_jasdaq20 = f[f.ecode.isin(jsadaq_20.code)].ecode.unique().shape[0]
-    missed_jasdaq20 = total_jasdaq20 - (extracted_jasdaq20 + failed_jasdaq20)
+    missed_jasdaq20 = max(total_jasdaq20 - (extracted_jasdaq20 + failed_jasdaq20), 0)
     extraction_ratio_jasdaq20 = round(extracted_jasdaq20 / total_jasdaq20, 3) if total_jasdaq20 > 0 else 0
 
     # metrics by section
@@ -392,7 +393,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_first_section = first_section.code.shape[0]
     extracted_first_section = s[s.ecode.isin(first_section.code)].ecode.unique().shape[0]
     failed_first_section = f[f.ecode.isin(first_section.code)].ecode.unique().shape[0]
-    missed_first_section = total_first_section - (extracted_first_section + failed_first_section)
+    missed_first_section = max(total_first_section - (extracted_first_section + failed_first_section), 0)
     extraction_ratio_first_section = round(extracted_first_section / total_first_section,
                                            3) if total_first_section > 0 else 0
 
@@ -401,7 +402,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_second_section = second_section.code.shape[0]
     extracted_second_section = s[s.ecode.isin(second_section.code)].ecode.unique().shape[0]
     failed_second_section = f[f.ecode.isin(second_section.code)].ecode.unique().shape[0]
-    missed_second_section = total_second_section - (extracted_second_section + failed_second_section)
+    missed_second_section = max(total_second_section - (extracted_second_section + failed_second_section), 0)
     extraction_ratio_second_section = round(extracted_second_section / total_second_section,
                                             3) if total_second_section > 0 else 0
 
@@ -410,7 +411,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_mothers = mothers.code.shape[0]
     extracted_mothers = s[s.ecode.isin(mothers.code)].ecode.unique().shape[0]
     failed_mothers = f[f.ecode.isin(mothers.code)].ecode.unique().shape[0]
-    missed_mothers = total_mothers - (extracted_mothers + failed_mothers)
+    missed_mothers = max(total_mothers - (extracted_mothers + failed_mothers), 0)
     extraction_ratio_mothers = round(extracted_mothers / total_mothers, 3) if total_mothers > 0 else 0
 
     # jasdaq growth
@@ -418,7 +419,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_jasdaq_growth = jasdaq_growth.code.shape[0]
     extracted_jasdaq_growth = s[s.ecode.isin(jasdaq_growth.code)].ecode.unique().shape[0]
     failed_jasdaq_growth = f[f.ecode.isin(jasdaq_growth.code)].ecode.unique().shape[0]
-    missed_jasdaq_growth = total_jasdaq_growth - (extracted_jasdaq_growth + failed_jasdaq_growth)
+    missed_jasdaq_growth = max(total_jasdaq_growth - (extracted_jasdaq_growth + failed_jasdaq_growth), 0)
     extraction_ratio_jasdaq_growth = round(extracted_jasdaq_growth / total_jasdaq_growth,
                                            3) if total_jasdaq_growth > 0 else 0
 
@@ -427,7 +428,8 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_jasdaq_standard = jasdaq_standard.code.shape[0]
     extracted_jasdaq_standard = s[s.ecode.isin(jasdaq_standard.code)].ecode.unique().shape[0]
     failed_jasdaq_standard = f[f.ecode.isin(jasdaq_standard.code)].ecode.unique().shape[0]
-    missed_jasdaq_standard = total_jasdaq_standard - (extracted_jasdaq_standard + failed_jasdaq_standard)
+    missed_jasdaq_standard = max(total_jasdaq_standard - (extracted_jasdaq_standard +
+                                                          failed_jasdaq_standard), 0)
     extraction_ratio_jasdaq_standard = round(extracted_jasdaq_standard / total_jasdaq_standard,
                                              3) if total_jasdaq_standard > 0 else 0
 
@@ -436,7 +438,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_mcap_above_10b = mcap_above_10b.code.shape[0]
     extracted_mcap_above_10b = s[s.ecode.isin(mcap_above_10b.code)].ecode.unique().shape[0]
     failed_mcap_above_10b = f[f.ecode.isin(mcap_above_10b.code)].ecode.unique().shape[0]
-    missed_mcap_above_10b = total_mcap_above_10b - (extracted_mcap_above_10b + failed_mcap_above_10b)
+    missed_mcap_above_10b = max(total_mcap_above_10b - (extracted_mcap_above_10b + failed_mcap_above_10b), 0)
     extraction_ratio_mcap_above_10b = round(extracted_mcap_above_10b / total_mcap_above_10b,
                                             3) if total_mcap_above_10b > 0 else 0
 
@@ -445,7 +447,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
     total_pv_above_85m = pv_above_85m.code.shape[0]
     extracted_pv_above_85m = s[s.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]
     failed_pv_above_85m = f[f.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]
-    missed_pv_above_85m = total_mcap_above_10b - (extracted_pv_above_85m + failed_pv_above_85m)
+    missed_pv_above_85m = max(total_pv_above_85m - (extracted_pv_above_85m + failed_pv_above_85m), 0)
     extraction_ratio_pv_above_85m = round(extracted_pv_above_85m / total_pv_above_85m,
                                           3) if total_pv_above_85m > 0 else 0
 
@@ -520,7 +522,7 @@ def update_metrics_sheet(date, data):
         existing_metrics = pd.read_csv(DAILY_METRICS_FILE)
         if date not in existing_metrics.date.values:
             final_metrics = existing_metrics.append(new_metrics, ignore_index=True)
-        else:
+        else:  # TODO: compare if metrics for the same date need an update
             final_metrics = existing_metrics
 
     # adjust order of column headers, 'date' should come first

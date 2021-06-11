@@ -41,6 +41,7 @@ def convert(start_date=None, end_date=None, end_time='15:01:00', bar_size='1 min
 
 
 def metrics(tickers, start_date=None, end_date=None, bar_size='1 min', verbose=False):
+    # todo: input sequence
     if start_date is None:
         start_date = end_date
     if end_date is None:

@@ -576,7 +576,7 @@ def metrics_generator(date, bar_size, tickers):
 
             # get extraction metrics
             metrics = compute_extraction_metrics(success, failure, relevant_input)
-            write_to_console(f'Over-all Extraction: {_get_marker(metrics["extracion_ratio"])}',
+            write_to_console(f'Over-all Extraction: {_get_marker(metrics["extraction_ratio"])}',
                              pointer='->', indent=2, verbose=True)
             write_to_console(f'Topix Extraction: {_get_marker(metrics["extraction_ratio_topix"])}',
                              pointer='->', indent=2, verbose=True)

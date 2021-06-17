@@ -456,7 +456,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
         extracted=extracted,
         failed=failed,
         missed=missed,
-        extracion_ratio=extraction_ratio,
+        extraction_ratio=extraction_ratio,
         total_topix=total_topix,
         extracted_topix=extracted_topix,
         failed_topix=failed_topix,

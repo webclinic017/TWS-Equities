@@ -443,7 +443,7 @@ def compute_extraction_metrics(success_data, failure_data, input_data):
                                             3) if total_mcap_above_10b > 0 else 0
 
     # 3 month's average trading volume * price >= ¥ 85 MM
-    pv_above_85m = i[i.average_trading_volume_3M >= 85e+6]
+    pv_above_85m = i[i.pv >= 85e+6]
     total_pv_above_85m = pv_above_85m.code.shape[0]
     extracted_pv_above_85m = s[s.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]
     failed_pv_above_85m = f[f.ecode.isin(pv_above_85m.code)].ecode.unique().shape[0]

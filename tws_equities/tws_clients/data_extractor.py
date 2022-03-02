@@ -120,7 +120,7 @@ class HistoricalDataExtractor(TWSWrapper, TWSClient):
         self.logger.debug(f'Extraction status check result for ticker: {ticker} is "{return_value}"')
         return return_value
 
-    def connect(self, host='127.0.0.1', port=7497, client_id=1):
+    def connect(self, host='127.0.0.1', port=7497, client_id=10):
         """
             Establishes a connection to TWS API
             Sets 'is_connected' to True after a successful connection

@@ -1,0 +1,1 @@
+from tests.sample_input import get_positive_input

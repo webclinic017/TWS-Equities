@@ -10,20 +10,24 @@ from sys import stderr
 from tws_equities import parse_user_args
 from tws_equities import get_logger
 from tws_equities import COMMAND_MAP
-from tws_equities import RED_CROSS as _RED_CROSS
+from tws_equities import settings
+
+
+# set marker for bad status
+RED_CROSS = settings.RED_CROSS
 
 # load user input
 user_args = parse_user_args()
 
+# setup root logger
+settings.DEBUG = user_args['debug']
+del user_args['debug']
+logger = get_logger(__name__, debug=settings.DEBUG)
+
 # extract command and remove the key
-# command is only to be used at the top-level, to trigger underlying functionality
+# command is only to be used at the top-level to trigger relevant functions
 command = user_args['command']
 del user_args['command']
-
-# setup root logger
-debug = user_args['debug']
-del user_args['debug']
-logger = get_logger(__name__, debug=debug)
 
 
 def main():
@@ -33,13 +37,13 @@ def main():
         target_function(**user_args)
     except KeyboardInterrupt:
         _message = 'Detected keyboard interruption from the user, terminating program....'
-        stderr.write(f'{_RED_CROSS} {_message}\n')
+        stderr.write(f'{RED_CROSS} {_message}\n')
         logger.error(_message)
     except Exception as e:
         _message = f'Program Crashed: {e}'
-        stderr.write(f'{_RED_CROSS} {_message}\n')
-        logger.error(_message, exc_info=debug)
-        if debug:
+        stderr.write(f'{RED_CROSS} {_message}\n')
+        logger.error(_message, exc_info=settings.DEBUG)
+        if settings.DEBUG:
             raise e
     # TODO: run final cleanup here
     stderr.flush()

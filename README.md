@@ -13,8 +13,8 @@
 
 Owner: **K2Q Capital Limited**  
 Author: **Mandeep Singh**  
-Updated: **February 12th 2021**  
-Version: **0.0.1-dev**
+Updated: **June 17th 2021**  
+Version: **1.1.1**
 
 ---
 
@@ -29,13 +29,13 @@ TWS Equities Data Downloader is a Python project written around Interactive Brok
 Before users try to interact with the code, they must ensure that following criteria are met:
 
 > - Install Python 3.6 or later.
-> - Use Linux or Mac OS machine, code has not yet been tested on Windows machines..
-> - Have some basic knowledge about using Command Line Interfaces(CLIs).
+> - Supported on Linux based systems, code has not yet been tested on Windows machines.
+> - Basic knowledge about working with a Command Line Interfaces(CLIs).
 
 Once the above requirements are satisfied, please follow the steps mentioned below to setup the project on your local machine:
 
 #### **Cloning the project:**
-To be able to use this code to extract market data, user first needs have the code cloned to into their local machine. Run the following command to do that:
+Run the following command to clone the project into your local machine:
 > **`git clone https://github.com/sudoMode/TWS-Project.git`**
 
 #### **Virtual Environment:**
@@ -49,7 +49,7 @@ The project is dependent on a few 3rd-party libraries that include:
 - Project contains a "requirements.txt" file that can be used to setup your new virtual environment, but still IBAPI must be built from scratch and installed in the new environment.
 
 #### **Launch IB's Trader Work Station(TWS):**
-User must launch TWS prior to interacting with the code, this is necessary because IB API will be hosted on your local machine once you're logged into TWS. Code uses default values to connect with the API which can be tweaked from Global API Settings in TWS.
+User must launch Trader Workstation prior to interacting with the code, this is necessary because IB API will be hosted on your local machine once you're logged into TWS. Code uses default values to connect with the API which can be tweaked from Global API Settings in TWS.
 ```
     DEFAULT_HOST = "127.0.0.1"
     DEFAULT_PORT = 7497
@@ -233,7 +233,7 @@ It is recommended that users attach screenshot of the problem and also provide i
 > 💻 Contribute to code:
 > - Developers are recommended to fork this Github repository and code new features in their in your
     repository.
-> - Create a new branch by the name of the feature you are developing.
+> - Create a new branch by the name of the feature you want to develop.
 > - Once changes are done, commit them with proper messages.
 > - Push the original branch back to origin and create a pull request.
 > - Changes will be reviewed and merged after approval from the repository owner.

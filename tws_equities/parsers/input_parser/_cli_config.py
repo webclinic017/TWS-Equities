@@ -18,7 +18,7 @@ _URL_ACTION = TICKER_ACTIONS['url']
 # options built for downloader
 _START_DATE = dict(name='--start-date', flag='-sd', type=INPUT_TYPES['date'], default=None,
                    dest='start_date', help='Start date for data extraction, default is None.'
-                                         '(Expected format: "YYYYMMDD")')
+                                           '(Expected format: "YYYYMMDD")')
 
 _END_DATE = dict(name='--end-date', flag='-ed', type=INPUT_TYPES['date'], default=_CURRENT_DATE,
                  dest='end_date', help='End date for data extraction, default is current date.'
@@ -117,7 +117,7 @@ _CONVERT = dict(help='Use this command to convert & save already downloaded data
 
 # building config for download command
 _OPTIONAL_ARGUMENTS = dict(start_date=_START_DATE, end_date=_END_DATE)
-_POSITIONAL_ARGUMENTS = None  # dict(tickers=_TICKERS)
+_POSITIONAL_ARGUMENTS = dict(tickers=_TICKERS)
 _METRICS = dict(help='Use this command to generate, display & save extraction metrics for a given date. ',
                 description='Allows the user to generate, display & save extraction metrics for a given '
                             'date. This command expectes that data is already downloaded and available in '

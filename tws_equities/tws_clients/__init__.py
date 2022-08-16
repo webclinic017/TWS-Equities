@@ -20,13 +20,15 @@ from tws_equities.tws_clients.base import TWSWrapper
 from tws_equities.tws_clients.base import TWSClient
 from tws_equities.tws_clients.data_extractor import HistoricalDataExtractor
 
+from tws_equities.settings import CACHE_DIR
+
 from logging import getLogger
 
 # TODO: add info messages to console
 # TODO: handle duplicate file creation
 # TODO: re-use cached input tickers
-_BATCH_SIZE = 30
 _CACHE_THRESHOLD = 10
+_BATCH_SIZE = 30
 _BAR_CONFIG = {
                     'title': '=> Status∶',
                     'calibrate': 5,
@@ -57,23 +59,24 @@ def _get_unprocessed_tickers(tickers, success_directory):
     return list(set(tickers).difference(map(_get_ticker_id, get_files_by_type(success_directory))))
 
 
-def _prep_for_extraction(tickers, end_date, end_time):
+def _prep_for_extraction(tickers, end_date, end_time, bar_size):
     """
         # todo: to be added...
     """
     # form data caching directory
-    cache_directory = join(_HISTORICAL_DATA_STORAGE, end_date, end_time.replace(':', '_'))
+    cache_directory = join(CACHE_DIR, bar_size.replace(' ', ''), end_date, end_time.replace(':', '_'))
 
     # create cache directory for success
-    cache_success = join(cache_directory, '.success')
+    cache_success = join(cache_directory, 'success')
     make_dirs(cache_success)
 
     # create cache directory for failure
-    cache_failure = join(cache_directory, '.failure')
+    cache_failure = join(cache_directory, 'failure')
     make_dirs(cache_failure)
 
     # save tickers for later use
     path_input_tickers = join(cache_directory, 'input_tickers.json')
+
     # todo: find a better way to do this
     if not isfile(path_input_tickers):
         save_data_as_json(tickers, path_input_tickers, indent=1, sort_keys=True)
@@ -112,9 +115,15 @@ def _run_extractor(batches, end_date, end_time, duration, bar_size, what_to_show
     with alive_bar(total=total, **_BAR_CONFIG) as bar:
         for i in range(total):
             batch = batches[i]
+            # hold extracted data for the current batch in a temp variable
+            # temp is a dictionary containing bar data for all tickers
             temp = extractor(batch, end_date, end_time, duration, bar_size, what_to_show,
                              use_rth, date_format, keep_upto_date, chart_options)
+
+            # add temp to main data container
             data.update(temp)
+
+            # cache data if current iteration is last or multiple of CACHE_THRESHOLD
             time_to_cache = (i+1 == total) or ((i > 0) and (i % _CACHE_THRESHOLD == 0))
             if time_to_cache:
                 if bool(data):
@@ -131,6 +140,8 @@ def _cleanup(success_files, success_directory, failure_files, failure_directory,
     message = 'Post-extraction cleanup initiated...'
     write_to_console(message, verbose=verbose)
 
+    # delete duplicate files
+    # TODO: this operation should not be required
     duplicate_files = list(set(success_files).intersection(failure_files))
     for file in duplicate_files:
         delete_file(failure_directory, file)
@@ -178,7 +189,7 @@ def extract_historical_data(tickers=None, end_date=None, end_time=None, duration
     # additional info, if user asks for it
     message = f'Setting things up for data-extraction...'
     write_to_console(message, indent=2, verbose=verbose)
-    tickers, cache_success, cache_failure = _prep_for_extraction(tickers, end_date, end_time)
+    tickers, cache_success, cache_failure = _prep_for_extraction(tickers, end_date, end_time, bar_size)
     write_to_console('Refreshed cache directories...', indent=4, pointer='->', verbose=verbose)
     write_to_console('Removed already cached tickers...', indent=4, pointer='->', verbose=verbose)
     write_to_console('Reset failed tickers...', indent=4, pointer='->', verbose=verbose)

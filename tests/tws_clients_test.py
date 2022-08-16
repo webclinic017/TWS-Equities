@@ -8,6 +8,10 @@ from os.path import dirname
 from os.path import join
 from tws_equities.tws_clients import extractor
 from tws_equities.tws_clients import extract_historical_data
+from tws_equities.data_files import create_csv_dump
+from tws_equities.settings import CACHE_DIR
+from tws_equities.settings import HISTORICAL_DATA_STORAGE
+from tws_equities.settings import MONTH_MAP
 import pytest
 
 
@@ -38,6 +42,7 @@ negative_test_tickers = [1743, 3437, 4628, 1234]
 date_format = r'%Y%m%d'
 end_date = dt.today().date().strftime(date_format)  # current date
 end_time = '09:01:00'  # after market close
+bar_size = '1 min'
 
 
 def validate_bar_data(data, ticker):
@@ -108,7 +113,7 @@ def validate_data_negative(input_tickers, extracted_data):
 
 
 def validate_data_caching_positive(input_tickers):
-    target_path = join(_HISTORICAL_DATA, end_date, end_time.replace(':', '_'), '.success')
+    target_path = join(CACHE_DIR, bar_size.replace(' ', ''), end_date, end_time.replace(':', '_'), 'success')
     cached_files = listdir(target_path)
     cached_ticker_ids = list(map(lambda x: int(x.split('.')[0]), cached_files))
     assert all(x in input_tickers for x in cached_ticker_ids), 'Not all tickers have been cached properly.'
@@ -136,5 +141,15 @@ def test_extractor_negative():
 def test_data_caching_positive():
     extract_historical_data(tickers=positive_test_tickers,
                             end_date=end_date,
-                            end_time=end_time)
+                            end_time=end_time,
+                            bar_size=bar_size)
     validate_data_caching_positive(positive_test_tickers)
+
+
+@pytest.mark.positive
+def test_csv_creation_positive():
+    create_csv_dump(end_date, end_time=end_time, bar_size=bar_size)
+    target_directory = join(HISTORICAL_DATA_STORAGE, bar_size.replace(' ', ''),
+                            end_date[:4], MONTH_MAP[int(end_date[4:6])], end_date)
+    assert 'success.csv' in listdir(target_directory), f'success.csv was not created at: {target_directory}'
+    # TODO: add more tests for success file
